@@ -14,6 +14,8 @@ import {
     onSnapshot,
     serverTimestamp,
     writeBatch,
+    setDoc,
+    getDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -21,6 +23,7 @@ import { db } from "./firebase";
 const eventsCol = collection(db, "events");
 const expensesCol = collection(db, "expenses");
 const staffCol = collection(db, "staff");
+const usersCol = collection(db, "users");
 
 // ══════════════════════════════════════════════════════════════
 //  EVENTS
@@ -214,4 +217,53 @@ export async function seedInitialData(existingEvents, existingExpenses, existing
 
     await batch.commit();
     return true;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  USER PROFILES
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Create a user profile document (keyed by Firebase Auth UID).
+ */
+export async function createUserProfile(uid, userData) {
+    const userRef = doc(db, "users", uid);
+    await setDoc(userRef, {
+        ...userData,
+        createdAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Get a single user profile by UID.
+ */
+export async function getUserProfile(uid) {
+    const userRef = doc(db, "users", uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) return { id: snap.id, ...snap.data() };
+    return null;
+}
+
+/**
+ * Subscribe to real-time updates of all user profiles.
+ */
+export function subscribeToUsers(onData, onError) {
+    return onSnapshot(usersCol, (snapshot) => {
+        const users = snapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+        }));
+        onData(users);
+    }, (error) => {
+        console.error("Error subscribing to users:", error);
+        if (onError) onError(error);
+    });
+}
+
+/**
+ * Update a user's role (admin only).
+ */
+export async function updateUserRole(uid, role) {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, { role, updatedAt: serverTimestamp() });
 }

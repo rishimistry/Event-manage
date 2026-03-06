@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
+import { useAuth } from "./AuthContext";
+import AuthPage from "./AuthPage";
 import {
   subscribeToEvents,
   subscribeToExpenses,
   subscribeToStaff,
+  subscribeToUsers,
+  updateUserRole as dbUpdateUserRole,
   addEvent as dbAddEvent,
   addExpense as dbAddExpense,
   addStaffMember as dbAddStaff,
@@ -12,25 +16,45 @@ import {
 } from "./db";
 
 const CATEGORIES = [
-  { id: "travel", label: "Travel", icon: "✈️", color: "#FF6B35" },
-  { id: "food", label: "Food & Stay", icon: "🍽️", color: "#F7C59F" },
-  { id: "decor", label: "Decor", icon: "🎨", color: "#A8DADC" },
-  { id: "labour", label: "Labour", icon: "👷", color: "#457B9D" },
-  { id: "equipment", label: "Equipment", icon: "🎥", color: "#E63946" },
-  { id: "misc", label: "Misc", icon: "📦", color: "#9B72CF" },
+  { id: "travel", label: "Travel", icon: "flight-takeoff-line.svg", color: "#FF6B35" },
+  { id: "food", label: "Food & Stay", icon: "restaurant-line.svg", color: "#F7C59F" },
+  { id: "decor", label: "Decor", icon: "decor.svg", color: "#A8DADC" },
+  { id: "labour", label: "Labour", icon: "stack-overflow-line.svg", color: "#457B9D" },
+  { id: "equipment", label: "Equipment", icon: "file-chart-line.svg", color: "#E63946" },
+  { id: "misc", label: "Misc", icon: "menu-line.svg", color: "#9B72CF" },
 ];
 
 const PAYMENT_MODES = [
-  { id: "cash", label: "Cash", icon: "💵", color: "#4ECDC4" },
-  { id: "upi", label: "UPI", icon: "📲", color: "#FF6B35" },
-  { id: "card", label: "Card", icon: "💳", color: "#9B72CF" },
-  { id: "bank", label: "Bank Transfer", icon: "🏦", color: "#457B9D" },
-  { id: "wallet", label: "Wallet", icon: "👛", color: "#F7C59F" },
-  { id: "cheque", label: "Cheque", icon: "🧾", color: "#A8DADC" },
+  { id: "cash", label: "Cash", icon: "cash-line.svg", color: "#4ECDC4" },
+  { id: "upi", label: "UPI", icon: "upi-icon.svg", color: "#FF6B35" },
+  { id: "card", label: "Card", icon: "bank-card-2-line.svg", color: "#9B72CF" },
+  { id: "bank", label: "Bank Transfer", icon: "bank-card-2-line.svg", color: "#457B9D" },
+  { id: "wallet", label: "Wallet", icon: "wallet-line.svg", color: "#F7C59F" },
+  { id: "cheque", label: "Cheque", icon: "coupon-4-line.svg", color: "#A8DADC" },
 ];
 
 function formatINR(n) {
   return "₹" + Number(n).toLocaleString("en-IN");
+}
+
+/* ── Icon Helper — renders SVG files or emoji text ───────────────── */
+function Icon({ src, size = 20, color, style = {} }) {
+  if (!src) return null;
+  const isSvg = typeof src === "string" && src.endsWith(".svg");
+  if (isSvg) {
+    return (
+      <img
+        src={`/${src}`}
+        alt=""
+        style={{
+          width: size, height: size, objectFit: "contain",
+          filter: "brightness(0) invert(1)",
+          ...style,
+        }}
+      />
+    );
+  }
+  return <span style={{ fontSize: size, lineHeight: 1, ...style }}>{src}</span>;
 }
 
 /* ── Animated Number ─────────────────────────────────────────────── */
@@ -84,11 +108,11 @@ function ExpenseRow({ exp, index, onDelete }) {
       animation: `fadeSlide 0.3s ease ${index * 0.04}s both`,
     }}>
       <div className="expense-row__header" onClick={() => setOpen(o => !o)}>
-        <div className="expense-row__icon" style={{ background: `${cat?.color}22` }}>{cat?.icon}</div>
+        <div className="expense-row__icon" style={{ background: `${cat?.color}22` }}><Icon src={cat?.icon} size={18} color={cat?.color} /></div>
         <div className="expense-row__body">
           <div className="expense-row__desc">{exp.desc}</div>
           <div className="expense-row__meta">
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: 8, background: `${pay?.color}22`, color: pay?.color, fontSize: 9, fontWeight: 800 }}>{pay?.icon} {pay?.label}</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: 8, background: `${pay?.color}22`, color: pay?.color, fontSize: 9, fontWeight: 800 }}><Icon src={pay?.icon} size={12} color={pay?.color} /> {pay?.label}</span>
             <span style={{ fontSize: 10, color: "#555" }}>· {exp.addedBy} · {exp.date}</span>
           </div>
         </div>
@@ -101,15 +125,15 @@ function ExpenseRow({ exp, index, onDelete }) {
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px" }}>
           <div className="expense-row__detail-grid">
             {[
-              { label: "Category", value: `${cat?.icon} ${cat?.label}`, color: cat?.color },
-              { label: "Payment", value: `${pay?.icon} ${pay?.label}`, color: pay?.color },
+              { label: "Category", value: cat?.label, icon: cat?.icon, color: cat?.color },
+              { label: "Payment", value: pay?.label, icon: pay?.icon, color: pay?.color },
               { label: "Amount", value: formatINR(exp.amount), color: "#fff" },
               { label: "Date", value: exp.date, color: "#aaa" },
               { label: "Logged By", value: exp.addedBy, color: "#aaa" },
             ].map(item => (
               <div key={item.label} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 10px" }}>
                 <div style={{ fontSize: 9, color: "#555", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>{item.label}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: item.color }}>{item.value}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: item.color, display: "flex", alignItems: "center", gap: 4 }}>{item.icon && <Icon src={item.icon} size={14} color={item.color} />}{item.value}</div>
               </div>
             ))}
           </div>
@@ -187,10 +211,14 @@ function Modal({ title, onClose, children }) {
      MAIN APP COMPONENT — Powered by Firebase Firestore
    ══════════════════════════════════════════════════════════════════ */
 export default function EventXpense() {
+  // ── Auth ──
+  const { user, userProfile, loading: authLoading, logout, isAdmin, canManageEvents, canManageUsers } = useAuth();
+
   // ── Firebase-synced state ──
   const [events, setEvents] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState(null);
   const loadedCount = useRef(0);
@@ -238,6 +266,8 @@ export default function EventXpense() {
   //  REAL-TIME FIRESTORE SUBSCRIPTIONS
   // ══════════════════════════════════════════════════════════════
   useEffect(() => {
+    if (!user) { setLoading(false); return; }
+
     // Timeout fallback — never stay on loading screen forever
     const timeout = setTimeout(() => {
       if (loadedCount.current < 3) {
@@ -261,13 +291,20 @@ export default function EventXpense() {
       markLoaded();
     }, handleSubError);
 
+    // Admin: subscribe to all user profiles
+    let unsubUsers = () => { };
+    if (canManageUsers) {
+      unsubUsers = subscribeToUsers((data) => setAllUsers(data), handleSubError);
+    }
+
     return () => {
       clearTimeout(timeout);
       unsubEvents();
       unsubExpenses();
       unsubStaff();
+      unsubUsers();
     };
-  }, []);
+  }, [user, canManageUsers]);
 
   // ── Seed initial data if DB is empty (runs once after loading stops) ──
   useEffect(() => {
@@ -296,6 +333,10 @@ export default function EventXpense() {
       setReportEvent(events[0].id);
     }
   }, [events]);
+
+  // ── Auth gating ──
+  if (authLoading) return <LoadingScreen />;
+  if (!user) return <AuthPage />;
 
   // ── Show loading screen while connecting ──
   if (loading) {
@@ -472,11 +513,27 @@ export default function EventXpense() {
     textAlign: "center", transition: "all 0.15s",
   });
 
-  const VIEW_LABELS = { dashboard: "📊 Overview", add: "➕ Log Expense", reports: "📈 Reports" };
+  const handleChangeRole = async (uid, newRole) => {
+    try {
+      await dbUpdateUserRole(uid, newRole);
+      showToast(`Role updated to ${newRole}! ✅`);
+    } catch (err) {
+      console.error("Error updating role:", err);
+      showToast("Failed to update role!", "error");
+    }
+  };
+
+  const VIEW_LABELS = {
+    dashboard: { icon: "report-analytics.svg", label: "Overview" },
+    add: { icon: "money-rupee-circle-line.svg", label: "Log Expense" },
+    reports: { icon: "file-chart-line.svg", label: "Reports" },
+    users: { icon: "stack-overflow-line.svg", label: "Users" },
+  };
   const NAV_ITEMS = [
-    { id: "dashboard", icon: "📊", label: "Overview" },
-    { id: "add", icon: "➕", label: "Add Expense" },
-    { id: "reports", icon: "📈", label: "Reports" },
+    { id: "dashboard", icon: "report-analytics.svg", label: "Overview" },
+    { id: "add", icon: "money-rupee-circle-line.svg", label: "Add Expense" },
+    { id: "reports", icon: "file-chart-line.svg", label: "Reports" },
+    ...(canManageUsers ? [{ id: "users", icon: "stack-overflow-line.svg", label: "Users" }] : []),
   ];
 
   return (
@@ -494,7 +551,7 @@ export default function EventXpense() {
           <div className="sidebar__brand-title">Team Expense Hub</div>
           <div style={{ fontSize: 9, color: "#4ECDC4", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ECDC4", display: "inline-block" }} />
-            Firebase Connected
+            {userProfile?.role?.toUpperCase() || "USER"} · Online
           </div>
         </div>
 
@@ -506,7 +563,7 @@ export default function EventXpense() {
             className={`sidebar__nav-btn ${view === item.id ? "sidebar__nav-btn--active" : "sidebar__nav-btn--inactive"}`}
             onClick={() => setView(item.id)}
           >
-            <span className="sidebar__nav-icon">{item.icon}</span>
+            <span className="sidebar__nav-icon"><Icon src={item.icon} size={18} /></span>
             {item.label}
           </button>
         ))}
@@ -534,11 +591,12 @@ export default function EventXpense() {
 
         {/* Avatar */}
         <div className="sidebar__avatar-section">
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, flexShrink: 0 }}>R</div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Rishi</div>
-            <div style={{ fontSize: 10, color: "#555" }}>Manager</div>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{userProfile?.name?.[0]?.toUpperCase() || "U"}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.name || "User"}</div>
+            <div style={{ fontSize: 10, color: "#555", textTransform: "capitalize" }}>{userProfile?.role || "Staff"}</div>
           </div>
+          <button onClick={logout} title="Sign out" style={{ background: "rgba(230,57,70,0.15)", border: "none", color: "#E63946", padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 10, fontWeight: 700, flexShrink: 0, fontFamily: "inherit" }}>Logout</button>
         </div>
       </aside>
 
@@ -554,7 +612,7 @@ export default function EventXpense() {
               <div className="header-brand-label">EventXpense</div>
               <div className="header-title">Team Expense Hub</div>
             </div>
-            <div className="header-avatar">R</div>
+            <div className="header-avatar" onClick={logout} style={{ cursor: "pointer" }} title="Sign out">{userProfile?.name?.[0]?.toUpperCase() || "U"}</div>
           </div>
 
           {/* Mobile Event Tabs */}
@@ -576,7 +634,7 @@ export default function EventXpense() {
           {/* Desktop Page Title */}
           <div className="desktop-header" style={{ display: "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="desktop-page-title">{VIEW_LABELS[view]}</div>
+              <div className="desktop-page-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Icon src={VIEW_LABELS[view]?.icon} size={20} /> {VIEW_LABELS[view]?.label}</div>
               <span style={{ fontSize: 12, color: "#555" }}>·</span>
               <span style={{ fontSize: 13, color: "#888", fontWeight: 600 }}>{currentEvent.name}</span>
               <span style={{ fontSize: 11, color: "#555" }}>{currentEvent.location}</span>
@@ -593,7 +651,7 @@ export default function EventXpense() {
               className={`nav-btn ${view === item.id ? "nav-btn--active" : "nav-btn--inactive"}`}
               onClick={() => setView(item.id)}
             >
-              {item.icon} {item.label}
+              <Icon src={item.icon} size={14} /> {item.label}
             </button>
           ))}
         </div>
@@ -652,7 +710,7 @@ export default function EventXpense() {
                       <div className="payment-strip">
                         {payBreakdown.map(pm => (
                           <div key={pm.id} className="payment-card" style={{ background: `${pm.color}18`, border: `1px solid ${pm.color}44` }}>
-                            <div style={{ fontSize: 20 }}>{pm.icon}</div>
+                            <div style={{ fontSize: 20 }}><Icon src={pm.icon} size={22} color={pm.color} /></div>
                             <div style={{ fontSize: 9, color: "#888", marginTop: 2, fontWeight: 700 }}>{pm.label}</div>
                             <div style={{ fontSize: 12, fontWeight: 800, color: pm.color, marginTop: 3 }}>{formatINR(pm.total)}</div>
                           </div>
@@ -668,7 +726,7 @@ export default function EventXpense() {
                       <div className="category-grid">
                         {categoryBreakdown.filter(c => c.total > 0).map(cat => (
                           <div key={cat.id} className="category-card" style={{ border: `1px solid ${cat.color}33` }}>
-                            <div style={{ fontSize: 20 }}>{cat.icon}</div>
+                            <div style={{ fontSize: 20 }}><Icon src={cat.icon} size={22} color={cat.color} /></div>
                             <div style={{ fontSize: 9, color: "#888", marginTop: 2 }}>{cat.label}</div>
                             <div style={{ fontSize: 12, fontWeight: 800, color: cat.color, marginTop: 4 }}>{formatINR(cat.total)}</div>
                           </div>
@@ -682,7 +740,7 @@ export default function EventXpense() {
                     <div className="filter-label">Filter by Category</div>
                     <div className="filter-chips">
                       {[{ id: "all", label: "All", icon: "🔍", color: "#FF6B35" }, ...CATEGORIES].map(c => (
-                        <button key={c.id} onClick={() => setFilter(c.id)} style={filterBtn(filter === c.id, c.color)}>{c.icon} {c.label}</button>
+                        <button key={c.id} onClick={() => setFilter(c.id)} style={{ ...filterBtn(filter === c.id, c.color), display: "inline-flex", alignItems: "center", gap: 4 }}><Icon src={c.icon} size={12} color={c.color} /> {c.label}</button>
                       ))}
                     </div>
                   </div>
@@ -690,7 +748,7 @@ export default function EventXpense() {
                     <div className="filter-label">Filter by Payment</div>
                     <div className="filter-chips">
                       {[{ id: "all", label: "All", icon: "💰", color: "#FF6B35" }, ...PAYMENT_MODES].map(p => (
-                        <button key={p.id} onClick={() => setPayFilter(p.id)} style={filterBtn(payFilter === p.id, p.color)}>{p.icon} {p.label}</button>
+                        <button key={p.id} onClick={() => setPayFilter(p.id)} style={{ ...filterBtn(payFilter === p.id, p.color), display: "inline-flex", alignItems: "center", gap: 4 }}><Icon src={p.icon} size={12} color={p.color} /> {p.label}</button>
                       ))}
                     </div>
                   </div>
@@ -731,7 +789,7 @@ export default function EventXpense() {
                     <div className="form-grid-categories">
                       {CATEGORIES.map(cat => (
                         <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id }))} style={gridPickBtn(form.category === cat.id, cat.color)}>
-                          <div style={{ fontSize: 22 }}>{cat.icon}</div>
+                          <div style={{ fontSize: 22 }}><Icon src={cat.icon} size={26} color={cat.color} /></div>
                           <div style={{ fontSize: 9, color: form.category === cat.id ? cat.color : "#888", fontWeight: 700, marginTop: 3 }}>{cat.label}</div>
                         </button>
                       ))}
@@ -744,7 +802,7 @@ export default function EventXpense() {
                     <div className="form-grid-categories">
                       {PAYMENT_MODES.map(pm => (
                         <button key={pm.id} onClick={() => setForm(f => ({ ...f, payMode: pm.id }))} style={gridPickBtn(form.payMode === pm.id, pm.color)}>
-                          <div style={{ fontSize: 20 }}>{pm.icon}</div>
+                          <div style={{ fontSize: 20 }}><Icon src={pm.icon} size={24} color={pm.color} /></div>
                           <div style={{ fontSize: 9, color: form.payMode === pm.id ? pm.color : "#888", fontWeight: 700, marginTop: 3, lineHeight: 1.2 }}>{pm.label}</div>
                         </button>
                       ))}
@@ -840,7 +898,7 @@ export default function EventXpense() {
                           <div className="category-grid">
                             {repCatBreak.map(cat => (
                               <div key={cat.id} className="category-card" style={{ border: `1px solid ${cat.color}33` }}>
-                                <div style={{ fontSize: 18 }}>{cat.icon}</div>
+                                <div style={{ fontSize: 18 }}><Icon src={cat.icon} size={20} color={cat.color} /></div>
                                 <div style={{ fontSize: 9, color: "#888", marginTop: 2 }}>{cat.label}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: cat.color, marginTop: 3 }}>{formatINR(cat.total)}</div>
                               </div>
@@ -856,7 +914,7 @@ export default function EventXpense() {
                           <div className="payment-strip">
                             {repPayBreak.map(pm => (
                               <div key={pm.id} className="payment-card" style={{ background: `${pm.color}18`, border: `1px solid ${pm.color}44` }}>
-                                <div style={{ fontSize: 20 }}>{pm.icon}</div>
+                                <div style={{ fontSize: 20 }}><Icon src={pm.icon} size={22} color={pm.color} /></div>
                                 <div style={{ fontSize: 9, color: "#888", marginTop: 2, fontWeight: 700 }}>{pm.label}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: pm.color, marginTop: 3 }}>{formatINR(pm.total)}</div>
                               </div>
@@ -893,6 +951,55 @@ export default function EventXpense() {
                     </>
                   )}
                 </>
+              )}
+            </div>
+          )}
+
+          {/* ══════ USERS (Admin Only) ══════ */}
+          {view === "users" && canManageUsers && (
+            <div>
+              <div className="form-title">User Management</div>
+              <div className="form-subtitle">Manage team roles and permissions</div>
+              {allUsers.length === 0 ? (
+                <div className="empty-state">No registered users found.</div>
+              ) : (
+                <div>
+                  {allUsers.map((u) => {
+                    const roleColor = u.role === "admin" ? "#E63946" : u.role === "manager" ? "#9B72CF" : "#4ECDC4";
+                    return (
+                      <div key={u.id} style={{
+                        display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
+                        background: "rgba(255,255,255,0.04)", borderRadius: 12, marginBottom: 8,
+                        border: "1px solid rgba(255,255,255,0.06)", transition: "background 0.2s",
+                      }}>
+                        <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${roleColor}, ${roleColor}88)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                          {u.name?.[0]?.toUpperCase() || "?"}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name || "Unknown"}</div>
+                          <div style={{ fontSize: 11, color: "#555" }}>{u.email}</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ padding: "4px 10px", borderRadius: 12, background: `${roleColor}22`, color: roleColor, fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>{u.role}</span>
+                          {u.id !== userProfile?.id && (
+                            <StyledSelect value={u.role} onChange={(e) => handleChangeRole(u.id, e.target.value)} style={{ width: 120 }}>
+                              <option value="admin" style={{ background: "#141418" }}>Admin</option>
+                              <option value="manager" style={{ background: "#141418" }}>Manager</option>
+                              <option value="staff" style={{ background: "#141418" }}>Staff</option>
+                            </StyledSelect>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ marginTop: 16, padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                      <strong style={{ color: "#E63946" }}>Admin</strong> — Full access + user management<br />
+                      <strong style={{ color: "#9B72CF" }}>Manager</strong> — Create events, manage team & expenses<br />
+                      <strong style={{ color: "#4ECDC4" }}>Staff</strong> — Log expenses & view reports
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
