@@ -241,6 +241,7 @@ export default function EventXpense() {
 
   const [form, setForm] = useState({ category: "travel", payMode: "upi", desc: "", amount: "", addedBy: "", note: "" });
   const [showAddEvent, setShowAddEvent] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [eventForm, setEventForm] = useState({ name: "", location: "", budget: "", date: "" });
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [newStaffName, setNewStaffName] = useState("");
@@ -250,7 +251,6 @@ export default function EventXpense() {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [editingEvent, setEditingEvent] = useState(null);
   const [showEditEvent, setShowEditEvent] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const toastTimer = useRef();
 
@@ -854,165 +854,41 @@ export default function EventXpense() {
               <div className="header-brand-label">EventXpense</div>
               <div className="header-title">Team Expense Hub</div>
             </div>
-            <button 
-              className="header-avatar" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowProfileMenu(!showProfileMenu);
-              }} 
-              style={{ cursor: "pointer", position: "relative" }} 
-              title="Profile"
-            >
-              {userProfile?.name?.[0]?.toUpperCase() || "U"}
-            </button>
-          </div>
-
-          {/* Mobile Profile Dropdown */}
-          {showProfileMenu && (
-            <div className="mobile-only">
-              <div 
-                style={{ position: "fixed", inset: 0, zIndex: 99, background: "rgba(0,0,0,0.3)" }} 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowProfileMenu(false);
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button 
+                onClick={() => setShowSettings(true)}
+                style={{ 
+                  padding: "8px 12px", 
+                  borderRadius: 8, 
+                  border: "1px solid rgba(255,255,255,0.15)", 
+                  background: "rgba(255,255,255,0.05)", 
+                  color: "#ddd", 
+                  fontSize: 12, 
+                  fontWeight: 600, 
+                  cursor: "pointer",
+                  fontFamily: "inherit"
                 }}
-              />
-              <div style={{
-                position: "fixed",
-                top: 75,
-                right: 20,
-                width: 280,
-                background: "#0f0f12",
-                border: "1px solid rgba(255,255,255,0.2)",
-                borderRadius: 14,
-                boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
-                zIndex: 100,
-                animation: "fadeSlide 0.2s ease",
-                overflow: "hidden"
-              }}>
-                {/* Profile Info */}
-                <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
-                      {userProfile?.name?.[0]?.toUpperCase() || "U"}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{userProfile?.name || "User"}</div>
-                      <div style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.email || ""}</div>
-                    </div>
-                  </div>
-                  <div style={{ 
-                    display: "inline-block",
-                    padding: "6px 12px", 
-                    borderRadius: 14, 
-                    background: userProfile?.role === "admin" ? "rgba(230,57,70,0.2)" : userProfile?.role === "manager" ? "rgba(155,114,207,0.2)" : "rgba(78,205,196,0.2)", 
-                    color: userProfile?.role === "admin" ? "#E63946" : userProfile?.role === "manager" ? "#9B72CF" : "#4ECDC4", 
-                    fontSize: 11, 
-                    fontWeight: 800,
-                    textTransform: "uppercase",
-                    letterSpacing: 1.2
-                  }}>
-                    {userProfile?.role || "Staff"}
-                  </div>
-                </div>
-
-                {/* Menu Items */}
-                <div style={{ padding: "10px" }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowProfileMenu(false);
-                      showToast("Theme settings coming soon! 🎨", "info");
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "none",
-                      background: "rgba(255,255,255,0.03)",
-                      color: "#fff",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      textAlign: "left",
-                      transition: "background 0.2s"
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>🎨</span>
-                    <span>Theme Settings</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowProfileMenu(false);
-                      showToast("Profile settings coming soon! ⚙️", "info");
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "none",
-                      background: "rgba(255,255,255,0.03)",
-                      color: "#fff",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      textAlign: "left",
-                      transition: "background 0.2s"
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>⚙️</span>
-                    <span>Settings</span>
-                  </button>
-
-                  <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "10px 0" }} />
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowProfileMenu(false);
-                      logout();
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.15)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.05)"}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "none",
-                      background: "rgba(230,57,70,0.05)",
-                      color: "#E63946",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      textAlign: "left",
-                      transition: "background 0.2s"
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>🚪</span>
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
+              >
+                ⚙️
+              </button>
+              <button 
+                onClick={logout}
+                style={{ 
+                  padding: "8px 12px", 
+                  borderRadius: 8, 
+                  border: "1px solid rgba(230,57,70,0.3)", 
+                  background: "rgba(230,57,70,0.1)", 
+                  color: "#E63946", 
+                  fontSize: 12, 
+                  fontWeight: 700, 
+                  cursor: "pointer",
+                  fontFamily: "inherit"
+                }}
+              >
+                Logout
+              </button>
             </div>
-          )}
+          </div>
 
           {/* Mobile Event Tabs */}
           <div className="event-tabs mobile-only">
@@ -1043,184 +919,65 @@ export default function EventXpense() {
                 {saving && <span style={{ fontSize: 10, color: "#FF6B35", fontWeight: 700, animation: "fadeSlide 0.3s ease" }}>💾 Saving...</span>}
               </div>
               
-              {/* Profile Dropdown */}
-              <div style={{ position: "relative" }}>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowProfileMenu(!showProfileMenu);
-                  }}
-                  style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 12, 
-                    padding: "10px 14px", 
-                    borderRadius: 12, 
-                    border: "1px solid rgba(255,255,255,0.1)", 
-                    background: showProfileMenu ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.05)", 
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
-                  onMouseLeave={(e) => !showProfileMenu && (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800 }}>
+              {/* Profile Section */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 }}>
                     {userProfile?.name?.[0]?.toUpperCase() || "U"}
                   </div>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#ddd" }}>{userProfile?.name || "User"}</div>
-                    <div style={{ fontSize: 10, color: "#666", textTransform: "capitalize" }}>{userProfile?.role || "Staff"}</div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#ddd" }}>{userProfile?.name || "User"}</div>
+                    <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase" }}>{userProfile?.role || "Staff"}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "#888", transition: "transform 0.2s", transform: showProfileMenu ? "rotate(180deg)" : "rotate(0deg)" }}>▼</div>
+                </div>
+                <button 
+                  onClick={() => setShowSettings(true)}
+                  style={{ 
+                    padding: "10px 18px", 
+                    borderRadius: 10, 
+                    border: "1px solid rgba(255,255,255,0.15)", 
+                    background: "rgba(255,255,255,0.05)", 
+                    color: "#fff", 
+                    fontSize: 13, 
+                    fontWeight: 600, 
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    height: 40
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                >
+                  <span>⚙️</span>
+                  <span>Settings</span>
                 </button>
-
-                {/* Dropdown Menu */}
-                {showProfileMenu && (
-                  <div className="desktop-header">
-                    <div 
-                      style={{ position: "fixed", inset: 0, zIndex: 99 }} 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowProfileMenu(false);
-                      }}
-                    />
-                    <div style={{
-                      position: "absolute",
-                      top: "calc(100% + 10px)",
-                      right: 0,
-                      width: 280,
-                      background: "#0f0f12",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      borderRadius: 14,
-                      boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
-                      zIndex: 100,
-                      animation: "fadeSlide 0.2s ease",
-                      overflow: "hidden"
-                    }}>
-                      {/* Profile Info */}
-                      <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
-                          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
-                            {userProfile?.name?.[0]?.toUpperCase() || "U"}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{userProfile?.name || "User"}</div>
-                            <div style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.email || ""}</div>
-                          </div>
-                        </div>
-                        <div style={{ 
-                          display: "inline-block",
-                          padding: "6px 12px", 
-                          borderRadius: 14, 
-                          background: userProfile?.role === "admin" ? "rgba(230,57,70,0.2)" : userProfile?.role === "manager" ? "rgba(155,114,207,0.2)" : "rgba(78,205,196,0.2)", 
-                          color: userProfile?.role === "admin" ? "#E63946" : userProfile?.role === "manager" ? "#9B72CF" : "#4ECDC4", 
-                          fontSize: 11, 
-                          fontWeight: 800,
-                          textTransform: "uppercase",
-                          letterSpacing: 1.2
-                        }}>
-                          {userProfile?.role || "Staff"}
-                        </div>
-                      </div>
-
-                      {/* Menu Items */}
-                      <div style={{ padding: "10px" }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowProfileMenu(false);
-                            showToast("Theme settings coming soon! 🎨", "info");
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-                          style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 14,
-                            padding: "12px 14px",
-                            borderRadius: 10,
-                            border: "none",
-                            background: "rgba(255,255,255,0.03)",
-                            color: "#fff",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            textAlign: "left",
-                            transition: "background 0.2s"
-                          }}
-                        >
-                          <span style={{ fontSize: 18 }}>🎨</span>
-                          <span>Theme Settings</span>
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowProfileMenu(false);
-                            showToast("Profile settings coming soon! ⚙️", "info");
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-                          style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 14,
-                            padding: "12px 14px",
-                            borderRadius: 10,
-                            border: "none",
-                            background: "rgba(255,255,255,0.03)",
-                            color: "#fff",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            textAlign: "left",
-                            transition: "background 0.2s"
-                          }}
-                        >
-                          <span style={{ fontSize: 18 }}>⚙️</span>
-                          <span>Settings</span>
-                        </button>
-
-                        <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "10px 0" }} />
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowProfileMenu(false);
-                            logout();
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.15)"}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.05)"}
-                          style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 14,
-                            padding: "12px 14px",
-                            borderRadius: 10,
-                            border: "none",
-                            background: "rgba(230,57,70,0.05)",
-                            color: "#E63946",
-                            fontSize: 14,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            textAlign: "left",
-                            transition: "background 0.2s"
-                          }}
-                        >
-                          <span style={{ fontSize: 18 }}>🚪</span>
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <button 
+                  onClick={logout}
+                  style={{ 
+                    padding: "10px 18px", 
+                    borderRadius: 10, 
+                    border: "1px solid rgba(230,57,70,0.3)", 
+                    background: "rgba(230,57,70,0.1)", 
+                    color: "#E63946", 
+                    fontSize: 13, 
+                    fontWeight: 600, 
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    height: 40
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.2)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.1)"}
+                >
+                  <span>🚪</span>
+                  <span>Logout</span>
+                </button>
               </div>
             </div>
           </div>
@@ -2058,6 +1815,144 @@ export default function EventXpense() {
             >
               {saving ? "💾 Saving..." : `✅ Assign ${selectedEvents.length} Event${selectedEvents.length !== 1 ? 's' : ''}`}
             </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── SETTINGS MODAL ── */}
+      {showSettings && (
+        <Modal title="⚙️ Settings" onClose={() => setShowSettings(false)}>
+          <div style={{ marginBottom: 20 }}>
+            {/* Profile Section */}
+            <div style={{ marginBottom: 24, padding: 20, background: "rgba(255,255,255,0.04)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="section-title" style={{ marginBottom: 12 }}>Profile Information</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800 }}>
+                  {userProfile?.name?.[0]?.toUpperCase() || "U"}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{userProfile?.name || "User"}</div>
+                  <div style={{ fontSize: 12, color: "#888" }}>{userProfile?.email || ""}</div>
+                  <div style={{ 
+                    display: "inline-block",
+                    marginTop: 6,
+                    padding: "4px 10px", 
+                    borderRadius: 12, 
+                    background: userProfile?.role === "admin" ? "rgba(230,57,70,0.2)" : userProfile?.role === "manager" ? "rgba(155,114,207,0.2)" : "rgba(78,205,196,0.2)", 
+                    color: userProfile?.role === "admin" ? "#E63946" : userProfile?.role === "manager" ? "#9B72CF" : "#4ECDC4", 
+                    fontSize: 10, 
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    letterSpacing: 1
+                  }}>
+                    {userProfile?.role || "Staff"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* App Settings */}
+            <div style={{ marginBottom: 24 }}>
+              <div className="section-title" style={{ marginBottom: 12 }}>App Preferences</div>
+              
+              <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🌙 Dark Mode</div>
+                  <div style={{ fontSize: 11, color: "#666" }}>Currently enabled (default)</div>
+                </div>
+                <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(78,205,196,0.15)", color: "#4ECDC4", fontSize: 11, fontWeight: 700 }}>Active</div>
+              </div>
+
+              <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🔔 Notifications</div>
+                  <div style={{ fontSize: 11, color: "#666" }}>Get updates on expenses</div>
+                </div>
+                <button 
+                  onClick={() => showToast("Notifications feature coming soon! 🔔", "info")}
+                  style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.08)", color: "#ddd", fontSize: 11, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  Configure
+                </button>
+              </div>
+
+              <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>💾 Auto-Save</div>
+                  <div style={{ fontSize: 11, color: "#666" }}>Automatically save changes</div>
+                </div>
+                <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(78,205,196,0.15)", color: "#4ECDC4", fontSize: 11, fontWeight: 700 }}>Enabled</div>
+              </div>
+            </div>
+
+            {/* Account Actions */}
+            <div>
+              <div className="section-title" style={{ marginBottom: 12 }}>Account</div>
+              
+              <button 
+                onClick={() => {
+                  setShowSettings(false);
+                  showToast("Password change feature coming soon! 🔐", "info");
+                }}
+                style={{ 
+                  width: "100%", 
+                  padding: "12px 16px", 
+                  borderRadius: 10, 
+                  border: "1px solid rgba(255,255,255,0.1)", 
+                  background: "rgba(255,255,255,0.05)", 
+                  color: "#ddd", 
+                  fontSize: 13, 
+                  fontWeight: 600, 
+                  cursor: "pointer", 
+                  fontFamily: "inherit",
+                  marginBottom: 10,
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+              >
+                <span style={{ fontSize: 16 }}>🔐</span>
+                <span>Change Password</span>
+              </button>
+
+              <button 
+                onClick={() => {
+                  setShowSettings(false);
+                  logout();
+                }}
+                style={{ 
+                  width: "100%", 
+                  padding: "12px 16px", 
+                  borderRadius: 10, 
+                  border: "1px solid rgba(230,57,70,0.3)", 
+                  background: "rgba(230,57,70,0.1)", 
+                  color: "#E63946", 
+                  fontSize: 13, 
+                  fontWeight: 700, 
+                  cursor: "pointer", 
+                  fontFamily: "inherit",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.15)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.1)"}
+              >
+                <span style={{ fontSize: 16 }}>🚪</span>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+
+          <div style={{ padding: "12px", background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>EventXpense v2.2</div>
+            <div style={{ fontSize: 10, color: "#555" }}>Team Expense Management System</div>
           </div>
         </Modal>
       )}
