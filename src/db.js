@@ -55,6 +55,8 @@ export async function addEvent(eventData) {
     const docRef = await addDoc(eventsCol, {
         ...eventData,
         budget: Number(eventData.budget),
+        createdBy: eventData.createdBy || null,
+        assignedManager: eventData.assignedManager || null,
         createdAt: serverTimestamp(),
     });
     return docRef.id;
@@ -123,6 +125,19 @@ export async function updateExpense(expenseId, updates) {
     const docRef = doc(db, "expenses", expenseId);
     await updateDoc(docRef, {
         ...updates,
+        updatedAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Update expense with edit tracking.
+ */
+export async function updateExpenseWithLog(expenseId, updates, editedBy) {
+    const docRef = doc(db, "expenses", expenseId);
+    await updateDoc(docRef, {
+        ...updates,
+        lastEditedBy: editedBy,
+        lastEditedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     });
 }
@@ -230,6 +245,8 @@ export async function createUserProfile(uid, userData) {
     const userRef = doc(db, "users", uid);
     await setDoc(userRef, {
         ...userData,
+        assignedEvents: [], // Events assigned to this user
+        assignedTo: null, // For staff: manager UID they report to
         createdAt: serverTimestamp(),
     });
 }
@@ -266,4 +283,73 @@ export function subscribeToUsers(onData, onError) {
 export async function updateUserRole(uid, role) {
     const userRef = doc(db, "users", uid);
     await updateDoc(userRef, { role, updatedAt: serverTimestamp() });
+}
+
+/**
+ * Assign events to a manager or staff member (admin only).
+ */
+export async function assignEventsToUser(uid, eventIds) {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, { 
+        assignedEvents: eventIds,
+        updatedAt: serverTimestamp() 
+    });
+}
+
+/**
+ * Assign staff to a manager (admin only).
+ */
+export async function assignStaffToManager(staffUid, managerUid) {
+    const staffRef = doc(db, "users", staffUid);
+    await updateDoc(staffRef, { 
+        assignedTo: managerUid,
+        updatedAt: serverTimestamp() 
+    });
+}
+
+/**
+ * Update event with creator and assigned manager.
+ */
+export async function updateEventAssignment(eventId, updates) {
+    const eventRef = doc(db, "events", eventId);
+    await updateDoc(eventRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ACTIVITY LOGS
+// ══════════════════════════════════════════════════════════════
+
+const activityLogsCol = collection(db, "activityLogs");
+
+/**
+ * Log an activity (expense added, edited, deleted, etc.)
+ */
+export async function logActivity(activityData) {
+    await addDoc(activityLogsCol, {
+        ...activityData,
+        timestamp: serverTimestamp(),
+    });
+}
+
+/**
+ * Subscribe to activity logs (admin only, with optional filters)
+ */
+export function subscribeToActivityLogs(onData, onError, limit = 50) {
+    return onSnapshot(activityLogsCol, (snapshot) => {
+        const logs = snapshot.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => {
+                const aTime = a.timestamp?.toMillis() || 0;
+                const bTime = b.timestamp?.toMillis() || 0;
+                return bTime - aTime;
+            })
+            .slice(0, limit);
+        onData(logs);
+    }, (error) => {
+        console.error("Error subscribing to activity logs:", error);
+        if (onError) onError(error);
+    });
 }

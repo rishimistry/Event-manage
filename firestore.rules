@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Helper Functions
+    // ══════════════════════════════════════════════════════════════
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserData().role == 'admin';
+    }
+    
+    function isManager() {
+      return isSignedIn() && getUserData().role == 'manager';
+    }
+    
+    function isStaff() {
+      return isSignedIn() && getUserData().role == 'staff';
+    }
+    
+    function canAccessEvent(eventId) {
+      return isAdmin() || 
+             (isSignedIn() && eventId in getUserData().assignedEvents);
+    }
+    
+    function isManagerOrAdmin() {
+      return isAdmin() || isManager();
+    }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Users Collection
+    // ══════════════════════════════════════════════════════════════
+    match /users/{userId} {
+      // Anyone signed in can read user profiles (for team collaboration)
+      allow read: if isSignedIn();
+      
+      // Users can create their own profile during registration
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      
+      // Admins can update any user
+      // Managers can update staff assignments (assignedEvents field only)
+      // Users can update their own non-sensitive fields
+      allow update: if isAdmin() || 
+                      (isManager() && 
+                       resource.data.role == 'staff' &&
+                       request.resource.data.role == resource.data.role &&
+                       request.resource.data.assignedTo == resource.data.assignedTo) ||
+                      (request.auth.uid == userId && 
+                       request.resource.data.role == resource.data.role &&
+                       request.resource.data.assignedEvents == resource.data.assignedEvents);
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Events Collection
+    // ══════════════════════════════════════════════════════════════
+    match /events/{eventId} {
+      // Users can only read events they have access to
+      allow read: if canAccessEvent(eventId);
+      
+      // Only admins can create events
+      allow create: if isAdmin();
+      
+      // Only admins can update events
+      allow update: if isAdmin();
+      
+      // Only admins can delete events
+      allow delete: if isAdmin();
+    }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Expenses Collection
+    // ══════════════════════════════════════════════════════════════
+    match /expenses/{expenseId} {
+      // Users can read expenses for events they have access to
+      allow read: if canAccessEvent(resource.data.eventId);
+      
+      // Users can create expenses for events they have access to
+      allow create: if isSignedIn() && 
+                      canAccessEvent(request.resource.data.eventId) &&
+                      request.resource.data.createdByUid == request.auth.uid;
+      
+      // Update permissions:
+      // - Admin: can update any expense
+      // - Manager: can update expenses in their assigned events
+      // - Staff: can only update their own expenses
+      allow update: if isAdmin() || 
+                      (isManager() && canAccessEvent(resource.data.eventId)) ||
+                      (isStaff() && 
+                       request.auth.uid == resource.data.createdByUid &&
+                       canAccessEvent(resource.data.eventId));
+      
+      // Delete permissions:
+      // - Admin: can delete any expense
+      // - Manager: can delete expenses in their assigned events
+      // - Staff: can only delete their own expenses
+      allow delete: if isAdmin() || 
+                      (isManager() && canAccessEvent(resource.data.eventId)) ||
+                      (isStaff() && request.auth.uid == resource.data.createdByUid);
+    }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Activity Logs Collection
+    // ══════════════════════════════════════════════════════════════
+    match /activityLogs/{logId} {
+      // Only admins can read activity logs
+      allow read: if isAdmin();
+      
+      // Any signed-in user can create activity logs (system-generated)
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Activity logs are immutable (cannot be updated or deleted)
+      allow update, delete: if false;
+    }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Staff Collection
+    // ══════════════════════════════════════════════════════════════
+    match /staff/{staffId} {
+      // Anyone signed in can read staff list (for dropdowns)
+      allow read: if isSignedIn();
+      
+      // Only admins and managers can create staff entries
+      allow create: if isManagerOrAdmin();
+      
+      // Only admins and managers can update staff entries
+      allow update: if isManagerOrAdmin();
+      
+      // Only admins and managers can delete staff entries
+      allow delete: if isManagerOrAdmin();
+    }
+  }
+}

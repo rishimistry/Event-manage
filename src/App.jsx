@@ -8,11 +8,17 @@ import {
   subscribeToStaff,
   subscribeToUsers,
   updateUserRole as dbUpdateUserRole,
+  assignEventsToUser as dbAssignEventsToUser,
+  assignStaffToManager as dbAssignStaffToManager,
   addEvent as dbAddEvent,
+  updateEvent as dbUpdateEvent,
+  deleteEvent as dbDeleteEvent,
   addExpense as dbAddExpense,
+  updateExpenseWithLog as dbUpdateExpense,
   addStaffMember as dbAddStaff,
   deleteExpense as dbDeleteExpense,
-  seedInitialData,
+  logActivity as dbLogActivity,
+  subscribeToActivityLogs,
 } from "./db";
 
 const CATEGORIES = [
@@ -219,6 +225,7 @@ export default function EventXpense() {
   const [expenses, setExpenses] = useState([]);
   const [staff, setStaff] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState(null);
   const loadedCount = useRef(0);
@@ -238,6 +245,12 @@ export default function EventXpense() {
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [newStaffName, setNewStaffName] = useState("");
   const [reportEvent, setReportEvent] = useState(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assigningUser, setAssigningUser] = useState(null);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const toastTimer = useRef();
 
@@ -297,42 +310,49 @@ export default function EventXpense() {
       unsubUsers = subscribeToUsers((data) => setAllUsers(data), handleSubError);
     }
 
+    // Admin: subscribe to activity logs
+    let unsubLogs = () => { };
+    if (isAdmin) {
+      unsubLogs = subscribeToActivityLogs((data) => setActivityLogs(data), handleSubError);
+    }
+
     return () => {
       clearTimeout(timeout);
       unsubEvents();
       unsubExpenses();
       unsubStaff();
       unsubUsers();
+      unsubLogs();
     };
-  }, [user, canManageUsers]);
+  }, [user, canManageUsers, isAdmin]);
 
-  // ── Seed initial data if DB is empty (runs once after loading stops) ──
-  useEffect(() => {
-    if (loading || seedAttempted.current) return;
-    seedAttempted.current = true;
 
-    const tryToSeed = async () => {
-      try {
-        const seeded = await seedInitialData(events, expenses, staff);
-        if (seeded) {
-          showToast("Sample data loaded! 🎉");
-        }
-      } catch (err) {
-        console.error("Seed error:", err);
-      }
-    };
-    tryToSeed();
-  }, [loading]);
 
   // ── Auto-select first event when events load ──
   useEffect(() => {
     if (events.length > 0 && !activeEvent) {
-      setActiveEvent(events[0].id);
+      // Select first visible event
+      const firstVisible = events.find(event => {
+        if (isAdmin) return true;
+        if (!userProfile?.assignedEvents) return false;
+        return userProfile.assignedEvents.includes(event.id);
+      });
+      if (firstVisible) {
+        setActiveEvent(firstVisible.id);
+      }
     }
     if (events.length > 0 && !reportEvent) {
-      setReportEvent(events[0].id);
+      // Select first visible event for reports
+      const firstVisible = events.find(event => {
+        if (isAdmin) return true;
+        if (!userProfile?.assignedEvents) return false;
+        return userProfile.assignedEvents.includes(event.id);
+      });
+      if (firstVisible) {
+        setReportEvent(firstVisible.id);
+      }
     }
-  }, [events]);
+  }, [events, activeEvent, reportEvent, isAdmin, userProfile?.assignedEvents]);
 
   // ── Auth gating ──
   if (authLoading) return <LoadingScreen />;
@@ -346,8 +366,22 @@ export default function EventXpense() {
   // ── Derived data ──
   const handleEventSwitch = (id) => { setActiveEvent(id); setFilter("all"); setPayFilter("all"); };
 
-  const currentEvent = events.find(e => e.id === activeEvent) || events[0] || { name: "No Events", location: "", budget: 1, date: "" };
-  const eventExpenses = expenses.filter(e => e.eventId === activeEvent);
+  // Filter events based on role and assignments
+  const visibleEvents = events.filter(event => {
+    if (isAdmin) return true; // Admin sees all
+    if (!userProfile?.assignedEvents) return false;
+    return userProfile.assignedEvents.includes(event.id);
+  });
+
+  // Filter expenses based on role and event access
+  const visibleExpenses = expenses.filter(expense => {
+    if (isAdmin) return true; // Admin sees all
+    const eventIds = userProfile?.assignedEvents || [];
+    return eventIds.includes(expense.eventId);
+  });
+
+  const currentEvent = visibleEvents.find(e => e.id === activeEvent) || visibleEvents[0] || { name: "No Events", location: "", budget: 1, date: "" };
+  const eventExpenses = visibleExpenses.filter(e => e.eventId === activeEvent);
   const filteredExpenses = eventExpenses
     .filter(e => filter === "all" || e.category === filter)
     .filter(e => payFilter === "all" || e.payMode === payFilter);
@@ -379,7 +413,7 @@ export default function EventXpense() {
 
     setSaving(true);
     try {
-      await dbAddExpense({
+      const expenseId = await dbAddExpense({
         eventId: activeEvent,
         category: form.category,
         payMode: form.payMode,
@@ -388,7 +422,21 @@ export default function EventXpense() {
         date: new Date().toISOString().split("T")[0],
         addedBy: form.addedBy,
         note: form.note.trim(),
+        createdByUid: user.uid,
       });
+      
+      // Log activity
+      await dbLogActivity({
+        action: "expense_added",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: userProfile?.role || "staff",
+        eventId: activeEvent,
+        eventName: currentEvent.name,
+        expenseId,
+        details: `Added expense: ${form.desc.trim()} - ${formatINR(parsedAmount)}`,
+      });
+
       setForm({ category: "travel", payMode: "upi", desc: "", amount: "", addedBy: "", note: "" });
       showToast("Expense logged! ✅");
       setView("dashboard");
@@ -412,8 +460,22 @@ export default function EventXpense() {
         location: eventForm.location.trim() || "TBD",
         budget: parseFloat(eventForm.budget),
         date: eventForm.date,
+        createdBy: user.uid,
+        assignedManager: eventForm.assignedManager || null,
       });
-      setEventForm({ name: "", location: "", budget: "", date: "" });
+
+      // Log activity
+      await dbLogActivity({
+        action: "event_created",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: userProfile?.role || "admin",
+        eventId: newId,
+        eventName: eventForm.name.trim(),
+        details: `Created event: ${eventForm.name.trim()} with budget ${formatINR(parseFloat(eventForm.budget))}`,
+      });
+
+      setEventForm({ name: "", location: "", budget: "", date: "", assignedManager: "" });
       setShowAddEvent(false);
       handleEventSwitch(newId);
       showToast(`"${eventForm.name.trim()}" added! 🎉`);
@@ -423,6 +485,94 @@ export default function EventXpense() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEditEvent = async () => {
+    if (!eventForm.name.trim()) { showToast("Event name required!", "error"); return; }
+    if (isNaN(parseFloat(eventForm.budget)) || !eventForm.budget) { showToast("Enter a valid budget!", "error"); return; }
+    if (!eventForm.date) { showToast("Select a date!", "error"); return; }
+
+    setSaving(true);
+    try {
+      await dbUpdateEvent(editingEvent.id, {
+        name: eventForm.name.trim(),
+        location: eventForm.location.trim() || "TBD",
+        budget: parseFloat(eventForm.budget),
+        date: eventForm.date,
+      });
+
+      // Log activity
+      await dbLogActivity({
+        action: "event_updated",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: "admin",
+        eventId: editingEvent.id,
+        eventName: eventForm.name.trim(),
+        details: `Updated event: ${eventForm.name.trim()}`,
+      });
+
+      setEventForm({ name: "", location: "", budget: "", date: "", assignedManager: "" });
+      setShowEditEvent(false);
+      setEditingEvent(null);
+      showToast("Event updated! ✅");
+    } catch (err) {
+      console.error("Error updating event:", err);
+      showToast("Failed to update event!", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId, eventName) => {
+    if (!confirm(`Are you sure you want to delete "${eventName}"? This will also delete all associated expenses.`)) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await dbDeleteEvent(eventId, expenses);
+
+      // Log activity
+      await dbLogActivity({
+        action: "event_deleted",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: "admin",
+        eventId: eventId,
+        eventName: eventName,
+        details: `Deleted event: ${eventName}`,
+      });
+
+      showToast("Event deleted! 🗑️");
+      
+      // Switch to another event if the deleted one was active
+      if (activeEvent === eventId) {
+        const remainingEvents = events.filter(e => e.id !== eventId);
+        if (remainingEvents.length > 0) {
+          setActiveEvent(remainingEvents[0].id);
+        } else {
+          setActiveEvent(null);
+        }
+      }
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      showToast("Failed to delete event!", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditEvent = (event) => {
+    setEditingEvent(event);
+    setEventForm({
+      name: event.name,
+      location: event.location,
+      budget: event.budget.toString(),
+      date: event.date,
+      assignedManager: event.assignedManager || "",
+    });
+    setShowEditEvent(true);
   };
 
   const handleAddStaff = async () => {
@@ -447,8 +597,32 @@ export default function EventXpense() {
   };
 
   const handleDelete = async (id) => {
+    const expense = expenses.find(e => e.id === id);
+    if (!expense) return;
+
+    // Permission check
+    if (!isAdmin && !canManageEvents) {
+      // Staff can only delete their own expenses
+      if (expense.createdByUid !== user.uid) {
+        showToast("You can only delete your own expenses!", "error");
+        return;
+      }
+    }
+
     try {
       await dbDeleteExpense(id);
+      
+      // Log activity
+      await dbLogActivity({
+        action: "expense_deleted",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: userProfile?.role || "staff",
+        eventId: expense.eventId,
+        expenseId: id,
+        details: `Deleted expense: ${expense.desc} - ${formatINR(expense.amount)}`,
+      });
+
       showToast("Expense removed 🗑️");
     } catch (err) {
       console.error("Error deleting expense:", err);
@@ -457,8 +631,8 @@ export default function EventXpense() {
   };
 
   /* ── Report helpers ── */
-  const repEvent = events.find(e => e.id === reportEvent) || events[0] || { name: "N/A", location: "", budget: 1, date: "" };
-  const repExpenses = expenses.filter(e => e.eventId === reportEvent);
+  const repEvent = visibleEvents.find(e => e.id === reportEvent) || visibleEvents[0] || { name: "N/A", location: "", budget: 1, date: "" };
+  const repExpenses = visibleExpenses.filter(e => e.eventId === reportEvent);
   const repSpent = repExpenses.reduce((s, e) => s + e.amount, 0);
   const repPct = repEvent.budget > 0 ? Math.min(100, (repSpent / repEvent.budget) * 100) : 0;
   const repCatBreak = CATEGORIES.map(c => ({ ...c, total: repExpenses.filter(e => e.category === c.id).reduce((s, e) => s + e.amount, 0) })).filter(c => c.total > 0);
@@ -516,6 +690,19 @@ export default function EventXpense() {
   const handleChangeRole = async (uid, newRole) => {
     try {
       await dbUpdateUserRole(uid, newRole);
+      
+      // Log activity
+      const targetUser = allUsers.find(u => u.id === uid);
+      await dbLogActivity({
+        action: "role_changed",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: "admin",
+        targetUserId: uid,
+        targetUserName: targetUser?.name || "Unknown",
+        details: `Changed ${targetUser?.name}'s role to ${newRole}`,
+      });
+
       showToast(`Role updated to ${newRole}! ✅`);
     } catch (err) {
       console.error("Error updating role:", err);
@@ -523,17 +710,81 @@ export default function EventXpense() {
     }
   };
 
+  const handleAssignEvents = async (uid, eventIds) => {
+    try {
+      await dbAssignEventsToUser(uid, eventIds);
+      
+      const targetUser = allUsers.find(u => u.id === uid);
+      await dbLogActivity({
+        action: "events_assigned",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: userProfile?.role || "admin",
+        targetUserId: uid,
+        targetUserName: targetUser?.name || "Unknown",
+        details: `Assigned ${eventIds.length} event(s) to ${targetUser?.name}`,
+      });
+
+      setShowAssignModal(false);
+      setAssigningUser(null);
+      setSelectedEvents([]);
+      showToast("Events assigned successfully! ✅");
+    } catch (err) {
+      console.error("Error assigning events:", err);
+      showToast("Failed to assign events!", "error");
+    }
+  };
+
+  const openAssignModal = (targetUser) => {
+    setAssigningUser(targetUser);
+    setSelectedEvents(targetUser.assignedEvents || []);
+    setShowAssignModal(true);
+  };
+
+  const toggleEventSelection = (eventId) => {
+    setSelectedEvents(prev => 
+      prev.includes(eventId) 
+        ? prev.filter(id => id !== eventId)
+        : [...prev, eventId]
+    );
+  };
+
+  const handleAssignStaffToManager = async (staffUid, managerUid) => {
+    try {
+      await dbAssignStaffToManager(staffUid, managerUid);
+      
+      const staffUser = allUsers.find(u => u.id === staffUid);
+      const managerUser = allUsers.find(u => u.id === managerUid);
+      await dbLogActivity({
+        action: "staff_assigned",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: "admin",
+        details: `Assigned ${staffUser?.name} to manager ${managerUser?.name}`,
+      });
+
+      showToast("Staff assigned to manager! ✅");
+    } catch (err) {
+      console.error("Error assigning staff:", err);
+      showToast("Failed to assign staff!", "error");
+    }
+  };
+
   const VIEW_LABELS = {
     dashboard: { icon: "report-analytics.svg", label: "Overview" },
     add: { icon: "money-rupee-circle-line.svg", label: "Log Expense" },
     reports: { icon: "file-chart-line.svg", label: "Reports" },
+    events: { icon: "file-chart-line.svg", label: "Events" },
     users: { icon: "stack-overflow-line.svg", label: "Users" },
+    analytics: { icon: "file-chart-line.svg", label: "Analytics" },
   };
   const NAV_ITEMS = [
     { id: "dashboard", icon: "report-analytics.svg", label: "Overview" },
     { id: "add", icon: "money-rupee-circle-line.svg", label: "Add Expense" },
     { id: "reports", icon: "file-chart-line.svg", label: "Reports" },
-    ...(canManageUsers ? [{ id: "users", icon: "stack-overflow-line.svg", label: "Users" }] : []),
+    ...(isAdmin ? [{ id: "events", icon: "file-chart-line.svg", label: "Events" }] : []),
+    ...(isAdmin ? [{ id: "analytics", icon: "file-chart-line.svg", label: "Analytics" }] : []),
+    ...(isAdmin || canManageEvents ? [{ id: "users", icon: "stack-overflow-line.svg", label: isAdmin ? "Users" : "My Team" }] : []),
   ];
 
   return (
@@ -549,9 +800,8 @@ export default function EventXpense() {
         <div className="sidebar__brand">
           <div className="sidebar__brand-label">EventXpense</div>
           <div className="sidebar__brand-title">Team Expense Hub</div>
-          <div style={{ fontSize: 9, color: "#4ECDC4", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ECDC4", display: "inline-block" }} />
-            {userProfile?.role?.toUpperCase() || "USER"} · Online
+          <div style={{ fontSize: 9, color: "#4ECDC4", marginTop: 4, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
+            {userProfile?.role || "USER"}
           </div>
         </div>
 
@@ -570,8 +820,8 @@ export default function EventXpense() {
 
         {/* Events List */}
         <div className="sidebar__events-section">
-          <div className="sidebar__nav-title">Events ({events.length})</div>
-          {events.map(ev => (
+          <div className="sidebar__nav-title">Events ({visibleEvents.length})</div>
+          {visibleEvents.map(ev => (
             <button
               key={ev.id}
               className={`sidebar__event-btn ${activeEvent === ev.id ? "sidebar__event-btn--active" : "sidebar__event-btn--inactive"}`}
@@ -584,19 +834,11 @@ export default function EventXpense() {
               </div>
             </button>
           ))}
-          <button className="sidebar__add-event-btn" onClick={() => setShowAddEvent(true)}>
-            ＋ New Event
-          </button>
-        </div>
-
-        {/* Avatar */}
-        <div className="sidebar__avatar-section">
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{userProfile?.name?.[0]?.toUpperCase() || "U"}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.name || "User"}</div>
-            <div style={{ fontSize: 10, color: "#555", textTransform: "capitalize" }}>{userProfile?.role || "Staff"}</div>
-          </div>
-          <button onClick={logout} title="Sign out" style={{ background: "rgba(230,57,70,0.15)", border: "none", color: "#E63946", padding: "6px 10px", borderRadius: 8, cursor: "pointer", fontSize: 10, fontWeight: 700, flexShrink: 0, fontFamily: "inherit" }}>Logout</button>
+          {isAdmin && (
+            <button className="sidebar__add-event-btn" onClick={() => setShowAddEvent(true)}>
+              ＋ New Event
+            </button>
+          )}
         </div>
       </aside>
 
@@ -612,12 +854,169 @@ export default function EventXpense() {
               <div className="header-brand-label">EventXpense</div>
               <div className="header-title">Team Expense Hub</div>
             </div>
-            <div className="header-avatar" onClick={logout} style={{ cursor: "pointer" }} title="Sign out">{userProfile?.name?.[0]?.toUpperCase() || "U"}</div>
+            <button 
+              className="header-avatar" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowProfileMenu(!showProfileMenu);
+              }} 
+              style={{ cursor: "pointer", position: "relative" }} 
+              title="Profile"
+            >
+              {userProfile?.name?.[0]?.toUpperCase() || "U"}
+            </button>
           </div>
+
+          {/* Mobile Profile Dropdown */}
+          {showProfileMenu && (
+            <div className="mobile-only">
+              <div 
+                style={{ position: "fixed", inset: 0, zIndex: 99, background: "rgba(0,0,0,0.3)" }} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowProfileMenu(false);
+                }}
+              />
+              <div style={{
+                position: "fixed",
+                top: 75,
+                right: 20,
+                width: 280,
+                background: "#0f0f12",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: 14,
+                boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
+                zIndex: 100,
+                animation: "fadeSlide 0.2s ease",
+                overflow: "hidden"
+              }}>
+                {/* Profile Info */}
+                <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
+                      {userProfile?.name?.[0]?.toUpperCase() || "U"}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{userProfile?.name || "User"}</div>
+                      <div style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.email || ""}</div>
+                    </div>
+                  </div>
+                  <div style={{ 
+                    display: "inline-block",
+                    padding: "6px 12px", 
+                    borderRadius: 14, 
+                    background: userProfile?.role === "admin" ? "rgba(230,57,70,0.2)" : userProfile?.role === "manager" ? "rgba(155,114,207,0.2)" : "rgba(78,205,196,0.2)", 
+                    color: userProfile?.role === "admin" ? "#E63946" : userProfile?.role === "manager" ? "#9B72CF" : "#4ECDC4", 
+                    fontSize: 11, 
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    letterSpacing: 1.2
+                  }}>
+                    {userProfile?.role || "Staff"}
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div style={{ padding: "10px" }}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProfileMenu(false);
+                      showToast("Theme settings coming soon! 🎨", "info");
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      border: "none",
+                      background: "rgba(255,255,255,0.03)",
+                      color: "#fff",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      textAlign: "left",
+                      transition: "background 0.2s"
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>🎨</span>
+                    <span>Theme Settings</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProfileMenu(false);
+                      showToast("Profile settings coming soon! ⚙️", "info");
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      border: "none",
+                      background: "rgba(255,255,255,0.03)",
+                      color: "#fff",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      textAlign: "left",
+                      transition: "background 0.2s"
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>⚙️</span>
+                    <span>Settings</span>
+                  </button>
+
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "10px 0" }} />
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProfileMenu(false);
+                      logout();
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.15)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.05)"}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      border: "none",
+                      background: "rgba(230,57,70,0.05)",
+                      color: "#E63946",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      textAlign: "left",
+                      transition: "background 0.2s"
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>🚪</span>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Mobile Event Tabs */}
           <div className="event-tabs mobile-only">
-            {events.map(ev => (
+            {visibleEvents.map(ev => (
               <button
                 key={ev.id}
                 className={`event-tab ${activeEvent === ev.id ? "event-tab--active" : "event-tab--inactive"}`}
@@ -626,19 +1025,203 @@ export default function EventXpense() {
                 {ev.name}
               </button>
             ))}
-            <button className="event-tab event-tab--add" onClick={() => setShowAddEvent(true)}>
-              ＋ New Event
-            </button>
+            {isAdmin && (
+              <button className="event-tab event-tab--add" onClick={() => setShowAddEvent(true)}>
+                ＋ New Event
+              </button>
+            )}
           </div>
 
           {/* Desktop Page Title */}
           <div className="desktop-header" style={{ display: "none" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="desktop-page-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Icon src={VIEW_LABELS[view]?.icon} size={20} /> {VIEW_LABELS[view]?.label}</div>
-              <span style={{ fontSize: 12, color: "#555" }}>·</span>
-              <span style={{ fontSize: 13, color: "#888", fontWeight: 600 }}>{currentEvent.name}</span>
-              <span style={{ fontSize: 11, color: "#555" }}>{currentEvent.location}</span>
-              {saving && <span style={{ fontSize: 10, color: "#FF6B35", fontWeight: 700, animation: "fadeSlide 0.3s ease" }}>💾 Saving...</span>}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div className="desktop-page-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Icon src={VIEW_LABELS[view]?.icon} size={20} /> {VIEW_LABELS[view]?.label}</div>
+                <span style={{ fontSize: 12, color: "#555" }}>·</span>
+                <span style={{ fontSize: 13, color: "#888", fontWeight: 600 }}>{currentEvent.name}</span>
+                <span style={{ fontSize: 11, color: "#555" }}>{currentEvent.location}</span>
+                {saving && <span style={{ fontSize: 10, color: "#FF6B35", fontWeight: 700, animation: "fadeSlide 0.3s ease" }}>💾 Saving...</span>}
+              </div>
+              
+              {/* Profile Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowProfileMenu(!showProfileMenu);
+                  }}
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 12, 
+                    padding: "10px 14px", 
+                    borderRadius: 12, 
+                    border: "1px solid rgba(255,255,255,0.1)", 
+                    background: showProfileMenu ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.05)", 
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+                  onMouseLeave={(e) => !showProfileMenu && (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800 }}>
+                    {userProfile?.name?.[0]?.toUpperCase() || "U"}
+                  </div>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#ddd" }}>{userProfile?.name || "User"}</div>
+                    <div style={{ fontSize: 10, color: "#666", textTransform: "capitalize" }}>{userProfile?.role || "Staff"}</div>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#888", transition: "transform 0.2s", transform: showProfileMenu ? "rotate(180deg)" : "rotate(0deg)" }}>▼</div>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showProfileMenu && (
+                  <div className="desktop-header">
+                    <div 
+                      style={{ position: "fixed", inset: 0, zIndex: 99 }} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowProfileMenu(false);
+                      }}
+                    />
+                    <div style={{
+                      position: "absolute",
+                      top: "calc(100% + 10px)",
+                      right: 0,
+                      width: 280,
+                      background: "#0f0f12",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: 14,
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.8)",
+                      zIndex: 100,
+                      animation: "fadeSlide 0.2s ease",
+                      overflow: "hidden"
+                    }}>
+                      {/* Profile Info */}
+                      <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
+                          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "linear-gradient(135deg,#FF6B35,#9B72CF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>
+                            {userProfile?.name?.[0]?.toUpperCase() || "U"}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{userProfile?.name || "User"}</div>
+                            <div style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.email || ""}</div>
+                          </div>
+                        </div>
+                        <div style={{ 
+                          display: "inline-block",
+                          padding: "6px 12px", 
+                          borderRadius: 14, 
+                          background: userProfile?.role === "admin" ? "rgba(230,57,70,0.2)" : userProfile?.role === "manager" ? "rgba(155,114,207,0.2)" : "rgba(78,205,196,0.2)", 
+                          color: userProfile?.role === "admin" ? "#E63946" : userProfile?.role === "manager" ? "#9B72CF" : "#4ECDC4", 
+                          fontSize: 11, 
+                          fontWeight: 800,
+                          textTransform: "uppercase",
+                          letterSpacing: 1.2
+                        }}>
+                          {userProfile?.role || "Staff"}
+                        </div>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div style={{ padding: "10px" }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowProfileMenu(false);
+                            showToast("Theme settings coming soon! 🎨", "info");
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 14,
+                            padding: "12px 14px",
+                            borderRadius: 10,
+                            border: "none",
+                            background: "rgba(255,255,255,0.03)",
+                            color: "#fff",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            textAlign: "left",
+                            transition: "background 0.2s"
+                          }}
+                        >
+                          <span style={{ fontSize: 18 }}>🎨</span>
+                          <span>Theme Settings</span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowProfileMenu(false);
+                            showToast("Profile settings coming soon! ⚙️", "info");
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 14,
+                            padding: "12px 14px",
+                            borderRadius: 10,
+                            border: "none",
+                            background: "rgba(255,255,255,0.03)",
+                            color: "#fff",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            textAlign: "left",
+                            transition: "background 0.2s"
+                          }}
+                        >
+                          <span style={{ fontSize: 18 }}>⚙️</span>
+                          <span>Settings</span>
+                        </button>
+
+                        <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "10px 0" }} />
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowProfileMenu(false);
+                            logout();
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.15)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.05)"}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 14,
+                            padding: "12px 14px",
+                            borderRadius: 10,
+                            border: "none",
+                            background: "rgba(230,57,70,0.05)",
+                            color: "#E63946",
+                            fontSize: 14,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            textAlign: "left",
+                            transition: "background 0.2s"
+                          }}
+                        >
+                          <span style={{ fontSize: 18 }}>🚪</span>
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -662,14 +1245,22 @@ export default function EventXpense() {
           {/* ══════ DASHBOARD ══════ */}
           {view === "dashboard" && (
             <div>
-              {events.length === 0 ? (
+              {visibleEvents.length === 0 ? (
                 <div className="empty-state" style={{ padding: "60px 0" }}>
                   <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>No Events Yet</div>
-                  <div style={{ color: "#666", marginBottom: 16 }}>Create your first event to start tracking expenses</div>
-                  <button onClick={() => setShowAddEvent(true)} style={{ padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#FF6B35,#E63946)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                    ＋ Create First Event
-                  </button>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>
+                    {isAdmin || canManageEvents ? "No Events Yet" : "No Events Assigned"}
+                  </div>
+                  <div style={{ color: "#666", marginBottom: 16 }}>
+                    {isAdmin 
+                      ? "Create your first event to start tracking expenses"
+                      : "Contact your admin to get assigned to events"}
+                  </div>
+                  {isAdmin && (
+                    <button onClick={() => setShowAddEvent(true)} style={{ padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#FF6B35,#E63946)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                      ＋ Create First Event
+                    </button>
+                  )}
                 </div>
               ) : (
                 <>
@@ -774,12 +1365,16 @@ export default function EventXpense() {
               <div className="form-title">Log Expense</div>
               <div className="form-subtitle">Takes less than 10 seconds ⚡</div>
 
-              {events.length === 0 ? (
+              {visibleEvents.length === 0 ? (
                 <div className="empty-state" style={{ padding: "40px 0" }}>
                   <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Create an event first!</div>
-                  <button onClick={() => setShowAddEvent(true)} style={{ padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#FF6B35,#E63946)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                    ＋ Create Event
-                  </button>
+                  {isAdmin ? (
+                    <button onClick={() => setShowAddEvent(true)} style={{ padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#FF6B35,#E63946)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                      ＋ Create Event
+                    </button>
+                  ) : (
+                    <div style={{ color: "#666" }}>Contact your admin to get assigned to events</div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -861,15 +1456,17 @@ export default function EventXpense() {
               <div className="form-title">Reports & Export</div>
               <div className="form-subtitle">Select an event to view its full report</div>
 
-              {events.length === 0 ? (
-                <div className="empty-state" style={{ padding: "40px 0" }}>No events to report on yet.</div>
+              {visibleEvents.length === 0 ? (
+                <div className="empty-state" style={{ padding: "40px 0" }}>
+                  {isAdmin || canManageEvents ? "No events to report on yet." : "No events assigned to you yet."}
+                </div>
               ) : (
                 <>
                   {/* Event Selector */}
                   <div className="form-field" style={{ marginBottom: 20 }}>
                     <label className="form-label">Select Event</label>
                     <StyledSelect value={reportEvent || ""} onChange={e => setReportEvent(e.target.value)}>
-                      {events.map(ev => <option key={ev.id} value={ev.id} style={{ background: "#141418" }}>{ev.name} — {ev.location}</option>)}
+                      {visibleEvents.map(ev => <option key={ev.id} value={ev.id} style={{ background: "#141418" }}>{ev.name} — {ev.location}</option>)}
                     </StyledSelect>
                   </div>
 
@@ -955,40 +1552,78 @@ export default function EventXpense() {
             </div>
           )}
 
-          {/* ══════ USERS (Admin Only) ══════ */}
-          {view === "users" && canManageUsers && (
+          {/* ══════ USERS (Admin/Manager) ══════ */}
+          {view === "users" && (isAdmin || canManageEvents) && (
             <div>
               <div className="form-title">User Management</div>
-              <div className="form-subtitle">Manage team roles and permissions</div>
+              <div className="form-subtitle">
+                {isAdmin ? "Manage team roles and permissions" : "Assign events to your team"}
+              </div>
               {allUsers.length === 0 ? (
                 <div className="empty-state">No registered users found.</div>
               ) : (
                 <div>
-                  {allUsers.map((u) => {
+                  {allUsers
+                    .filter(u => isAdmin || u.role === "staff") // Managers only see staff
+                    .map((u) => {
                     const roleColor = u.role === "admin" ? "#E63946" : u.role === "manager" ? "#9B72CF" : "#4ECDC4";
+                    const assignedEventNames = (u.assignedEvents || [])
+                      .map(eid => events.find(e => e.id === eid)?.name)
+                      .filter(Boolean);
+                    
+                    // For managers, only show events they have access to
+                    const availableEventsForAssignment = isAdmin ? events : visibleEvents;
+                    
                     return (
                       <div key={u.id} style={{
-                        display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-                        background: "rgba(255,255,255,0.04)", borderRadius: 12, marginBottom: 8,
-                        border: "1px solid rgba(255,255,255,0.06)", transition: "background 0.2s",
+                        background: "rgba(255,255,255,0.04)", borderRadius: 12, marginBottom: 12,
+                        border: "1px solid rgba(255,255,255,0.06)", padding: "16px", transition: "background 0.2s",
                       }}>
-                        <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${roleColor}, ${roleColor}88)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
-                          {u.name?.[0]?.toUpperCase() || "?"}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name || "Unknown"}</div>
-                          <div style={{ fontSize: 11, color: "#555" }}>{u.email}</div>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                          <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${roleColor}, ${roleColor}88)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                            {u.name?.[0]?.toUpperCase() || "?"}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name || "Unknown"}</div>
+                            <div style={{ fontSize: 11, color: "#555" }}>{u.email}</div>
+                          </div>
                           <span style={{ padding: "4px 10px", borderRadius: 12, background: `${roleColor}22`, color: roleColor, fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>{u.role}</span>
-                          {u.id !== userProfile?.id && (
-                            <StyledSelect value={u.role} onChange={(e) => handleChangeRole(u.id, e.target.value)} style={{ width: 120 }}>
+                        </div>
+
+                        {/* Role Management (Admin only) */}
+                        {isAdmin && u.id !== userProfile?.id && (
+                          <div style={{ marginBottom: 12 }}>
+                            <label className="form-label" style={{ marginBottom: 6 }}>Change Role</label>
+                            <StyledSelect value={u.role} onChange={(e) => handleChangeRole(u.id, e.target.value)}>
                               <option value="admin" style={{ background: "#141418" }}>Admin</option>
                               <option value="manager" style={{ background: "#141418" }}>Manager</option>
                               <option value="staff" style={{ background: "#141418" }}>Staff</option>
                             </StyledSelect>
-                          )}
-                        </div>
+                          </div>
+                        )}
+
+                        {/* Event Assignment (Admin can assign to anyone, Manager can assign to staff) */}
+                        {((isAdmin && (u.role === "manager" || u.role === "staff")) || 
+                          (canManageEvents && u.role === "staff")) && (
+                          <div>
+                            <label className="form-label" style={{ marginBottom: 6 }}>Assigned Events ({assignedEventNames.length})</label>
+                            {assignedEventNames.length > 0 ? (
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                                {assignedEventNames.map(name => (
+                                  <span key={name} style={{ padding: "4px 10px", borderRadius: 12, background: "rgba(255,107,53,0.15)", color: "#FF6B35", fontSize: 10, fontWeight: 700 }}>{name}</span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>No events assigned</div>
+                            )}
+                            <button 
+                              onClick={() => openAssignModal(u)}
+                              style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, rgba(155,114,207,0.25), rgba(155,114,207,0.15))", color: "#9B72CF", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}
+                            >
+                              📋 Manage Event Access
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1001,6 +1636,280 @@ export default function EventXpense() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ══════ EVENTS (Admin Only) ══════ */}
+          {view === "events" && isAdmin && (
+            <div>
+              <div className="form-title">Event Management</div>
+              <div className="form-subtitle">Create, edit, and manage all events</div>
+
+              <button 
+                onClick={() => setShowAddEvent(true)}
+                style={{ 
+                  width: "100%", 
+                  padding: "14px", 
+                  borderRadius: 12, 
+                  border: "none", 
+                  background: "linear-gradient(135deg,#9B72CF,#FF6B35)", 
+                  color: "#fff", 
+                  fontSize: 14, 
+                  fontWeight: 800, 
+                  cursor: "pointer", 
+                  fontFamily: "inherit",
+                  marginBottom: 20
+                }}
+              >
+                ＋ Create New Event
+              </button>
+
+              {events.length === 0 ? (
+                <div className="empty-state">No events created yet.</div>
+              ) : (
+                <div>
+                  {events.map((event, idx) => {
+                    const eventExpenses = expenses.filter(e => e.eventId === event.id);
+                    const spent = eventExpenses.reduce((s, e) => s + e.amount, 0);
+                    const pct = event.budget > 0 ? Math.min(100, (spent / event.budget) * 100) : 0;
+                    const assignedUsers = allUsers.filter(u => u.assignedEvents?.includes(event.id));
+                    
+                    return (
+                      <div 
+                        key={event.id} 
+                        style={{
+                          background: "rgba(255,255,255,0.04)", 
+                          borderRadius: 14, 
+                          padding: "18px", 
+                          marginBottom: 12,
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          animation: `fadeSlide 0.3s ease ${idx * 0.05}s both`
+                        }}
+                      >
+                        {/* Event Header */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{event.name}</div>
+                            <div style={{ fontSize: 12, color: "#888", display: "flex", gap: 12, flexWrap: "wrap" }}>
+                              <span>📍 {event.location}</span>
+                              <span>📅 {event.date}</span>
+                              <span>💰 Budget: {formatINR(event.budget)}</span>
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button 
+                              onClick={() => openEditEvent(event)}
+                              style={{ 
+                                padding: "6px 12px", 
+                                borderRadius: 8, 
+                                border: "none", 
+                                background: "rgba(255,107,53,0.15)", 
+                                color: "#FF6B35", 
+                                fontSize: 11, 
+                                fontWeight: 700, 
+                                cursor: "pointer",
+                                fontFamily: "inherit"
+                              }}
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteEvent(event.id, event.name)}
+                              style={{ 
+                                padding: "6px 12px", 
+                                borderRadius: 8, 
+                                border: "none", 
+                                background: "rgba(230,57,70,0.15)", 
+                                color: "#E63946", 
+                                fontSize: 11, 
+                                fontWeight: 700, 
+                                cursor: "pointer",
+                                fontFamily: "inherit"
+                              }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Budget Progress */}
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                            <span style={{ fontSize: 11, color: "#888" }}>Spent: {formatINR(spent)}</span>
+                            <span style={{ fontSize: 11, color: pct > 85 ? "#E63946" : "#4ECDC4", fontWeight: 700 }}>{pct.toFixed(1)}%</span>
+                          </div>
+                          <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 4, height: 6 }}>
+                            <div style={{ 
+                              height: 6, 
+                              borderRadius: 4, 
+                              background: pct > 85 ? "#E63946" : "linear-gradient(90deg,#4ECDC4,#FF6B35)", 
+                              width: `${pct}%`, 
+                              transition: "width 0.6s ease" 
+                            }} />
+                          </div>
+                        </div>
+
+                        {/* Stats Row */}
+                        <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+                          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                            <div style={{ fontSize: 10, color: "#666", marginBottom: 2 }}>Expenses</div>
+                            <div style={{ fontSize: 16, fontWeight: 800, color: "#FF6B35" }}>{eventExpenses.length}</div>
+                          </div>
+                          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                            <div style={{ fontSize: 10, color: "#666", marginBottom: 2 }}>Assigned Users</div>
+                            <div style={{ fontSize: 16, fontWeight: 800, color: "#9B72CF" }}>{assignedUsers.length}</div>
+                          </div>
+                          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                            <div style={{ fontSize: 10, color: "#666", marginBottom: 2 }}>Remaining</div>
+                            <div style={{ fontSize: 16, fontWeight: 800, color: event.budget - spent >= 0 ? "#4ECDC4" : "#E63946" }}>
+                              {formatINR(Math.abs(event.budget - spent))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Assigned Users */}
+                        {assignedUsers.length > 0 && (
+                          <div>
+                            <div style={{ fontSize: 10, color: "#666", marginBottom: 6, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Assigned To</div>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                              {assignedUsers.map(u => (
+                                <span 
+                                  key={u.id} 
+                                  style={{ 
+                                    padding: "4px 10px", 
+                                    borderRadius: 12, 
+                                    background: u.role === "manager" ? "rgba(155,114,207,0.15)" : "rgba(78,205,196,0.15)", 
+                                    color: u.role === "manager" ? "#9B72CF" : "#4ECDC4", 
+                                    fontSize: 10, 
+                                    fontWeight: 700 
+                                  }}
+                                >
+                                  {u.name} ({u.role})
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══════ ANALYTICS (Admin Only) ══════ */}
+          {view === "analytics" && isAdmin && (
+            <div>
+              <div className="form-title">Admin Analytics</div>
+              <div className="form-subtitle">System-wide insights and activity logs</div>
+
+              {/* Summary Cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
+                <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.2), rgba(230,57,70,0.15))", border: "1px solid rgba(255,107,53,0.3)", borderRadius: 12, padding: 16 }}>
+                  <div style={{ fontSize: 10, color: "#FF6B35", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Events</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#FF6B35" }}>{events.length}</div>
+                </div>
+                <div style={{ background: "linear-gradient(135deg, rgba(155,114,207,0.2), rgba(155,114,207,0.15))", border: "1px solid rgba(155,114,207,0.3)", borderRadius: 12, padding: 16 }}>
+                  <div style={{ fontSize: 10, color: "#9B72CF", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Expenses</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#9B72CF" }}>{expenses.length}</div>
+                </div>
+                <div style={{ background: "linear-gradient(135deg, rgba(78,205,196,0.2), rgba(78,205,196,0.15))", border: "1px solid rgba(78,205,196,0.3)", borderRadius: 12, padding: 16 }}>
+                  <div style={{ fontSize: 10, color: "#4ECDC4", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Users</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#4ECDC4" }}>{allUsers.length}</div>
+                </div>
+                <div style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.2), rgba(155,114,207,0.15))", border: "1px solid rgba(255,107,53,0.3)", borderRadius: 12, padding: 16 }}>
+                  <div style={{ fontSize: 10, color: "#FF6B35", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Spent</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: "#FF6B35" }}>{formatINR(expenses.reduce((s, e) => s + e.amount, 0))}</div>
+                </div>
+              </div>
+
+              {/* Event Performance */}
+              <div style={{ marginBottom: 20 }}>
+                <div className="section-title">📊 Event Performance</div>
+                {events.map(event => {
+                  const eventExpenses = expenses.filter(e => e.eventId === event.id);
+                  const spent = eventExpenses.reduce((s, e) => s + e.amount, 0);
+                  const pct = event.budget > 0 ? Math.min(100, (spent / event.budget) * 100) : 0;
+                  return (
+                    <div key={event.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: 14, marginBottom: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700 }}>{event.name}</div>
+                          <div style={{ fontSize: 10, color: "#555" }}>{event.location} · {event.date}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "#FF6B35" }}>{formatINR(spent)}</div>
+                          <div style={{ fontSize: 10, color: "#888" }}>of {formatINR(event.budget)}</div>
+                        </div>
+                      </div>
+                      <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 4, height: 6 }}>
+                        <div style={{ height: 6, borderRadius: 4, background: pct > 85 ? "#E63946" : "linear-gradient(90deg,#4ECDC4,#FF6B35)", width: `${pct}%`, transition: "width 0.6s ease" }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: pct > 85 ? "#E63946" : "#4ECDC4", marginTop: 4, fontWeight: 700 }}>{pct.toFixed(1)}% used · {eventExpenses.length} expenses</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* User Activity */}
+              <div style={{ marginBottom: 20 }}>
+                <div className="section-title">👥 User Breakdown</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+                  {["admin", "manager", "staff"].map(role => {
+                    const count = allUsers.filter(u => u.role === role).length;
+                    const color = role === "admin" ? "#E63946" : role === "manager" ? "#9B72CF" : "#4ECDC4";
+                    return (
+                      <div key={role} style={{ background: `${color}15`, border: `1px solid ${color}33`, borderRadius: 10, padding: 12, textAlign: "center" }}>
+                        <div style={{ fontSize: 10, color: "#888", textTransform: "uppercase", fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>{role}s</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, color }}>{count}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Activity Logs */}
+              <div>
+                <div className="section-title">📝 Recent Activity (Last 20)</div>
+                {activityLogs.length === 0 ? (
+                  <div className="empty-state">No activity logs yet</div>
+                ) : (
+                  <div>
+                    {activityLogs.slice(0, 20).map((log, idx) => {
+                      const actionColors = {
+                        expense_added: "#4ECDC4",
+                        expense_edited: "#FF6B35",
+                        expense_deleted: "#E63946",
+                        event_created: "#9B72CF",
+                        role_changed: "#457B9D",
+                        events_assigned: "#9B72CF",
+                        staff_assigned: "#4ECDC4",
+                      };
+                      const color = actionColors[log.action] || "#888";
+                      const timeStr = log.timestamp?.toDate ? new Date(log.timestamp.toDate()).toLocaleString("en-IN", { 
+                        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" 
+                      }) : "Unknown time";
+
+                      return (
+                        <div key={log.id || idx} style={{ 
+                          background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "10px 12px", 
+                          marginBottom: 6, border: `1px solid ${color}22`, display: "flex", alignItems: "center", gap: 10,
+                          animation: `fadeSlide 0.3s ease ${idx * 0.02}s both`
+                        }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#ddd", marginBottom: 2 }}>{log.details}</div>
+                            <div style={{ fontSize: 10, color: "#555" }}>
+                              {log.userName} ({log.userRole}) · {timeStr}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -1031,6 +1940,26 @@ export default function EventXpense() {
         </Modal>
       )}
 
+      {/* ── EDIT EVENT MODAL ── */}
+      {showEditEvent && editingEvent && (
+        <Modal title="✏️ Edit Event" onClose={() => { setShowEditEvent(false); setEditingEvent(null); setEventForm({ name: "", location: "", budget: "", date: "", assignedManager: "" }); }}>
+          {[
+            { key: "name", label: "Event Name *", placeholder: "e.g. Kapoor Wedding", type: "text" },
+            { key: "location", label: "City / Location", placeholder: "e.g. Hyderabad", type: "text" },
+            { key: "budget", label: "Budget (₹) *", placeholder: "e.g. 75000", type: "number" },
+            { key: "date", label: "Event Date *", placeholder: "", type: "date" },
+          ].map(f => (
+            <div key={f.key} className="form-field">
+              <label className="form-label">{f.label}</label>
+              <input type={f.type} placeholder={f.placeholder} value={eventForm[f.key]} onChange={e => setEventForm(prev => ({ ...prev, [f.key]: e.target.value }))} className="form-input" style={{ colorScheme: "dark" }} />
+            </div>
+          ))}
+          <button onClick={handleEditEvent} disabled={saving} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#FF6B35,#E63946)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", marginTop: 4, fontFamily: "inherit", opacity: saving ? 0.6 : 1 }}>
+            {saving ? "💾 Updating..." : "✅ Update Event"}
+          </button>
+        </Modal>
+      )}
+
       {/* ── ADD STAFF MODAL ── */}
       {showAddStaff && (
         <Modal title="👤 Add Staff Member" onClose={() => setShowAddStaff(false)}>
@@ -1049,6 +1978,87 @@ export default function EventXpense() {
           <button onClick={handleAddStaff} disabled={saving} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#9B72CF,#FF6B35)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", opacity: saving ? 0.6 : 1 }}>
             {saving ? "💾 Adding..." : "✅ Add to Team"}
           </button>
+        </Modal>
+      )}
+
+      {/* ── ASSIGN EVENTS MODAL ── */}
+      {showAssignModal && assigningUser && (
+        <Modal title={`📋 Assign Events to ${assigningUser.name}`} onClose={() => { setShowAssignModal(false); setAssigningUser(null); setSelectedEvents([]); }}>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: "#888", marginBottom: 12 }}>
+              Select which events {assigningUser.name} can access. {isAdmin ? "As admin, you can assign any event." : "As manager, you can assign your events."}
+            </div>
+            
+            {/* Available events based on role */}
+            {(isAdmin ? events : visibleEvents).length === 0 ? (
+              <div className="empty-state" style={{ padding: "20px 0" }}>
+                {isAdmin ? "No events created yet." : "You don't have any events to assign."}
+              </div>
+            ) : (
+              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                {(isAdmin ? events : visibleEvents).map(event => {
+                  const isSelected = selectedEvents.includes(event.id);
+                  return (
+                    <div 
+                      key={event.id}
+                      onClick={() => toggleEventSelection(event.id)}
+                      style={{
+                        padding: "12px 14px",
+                        marginBottom: 8,
+                        borderRadius: 10,
+                        background: isSelected ? "rgba(255,107,53,0.15)" : "rgba(255,255,255,0.04)",
+                        border: `1.5px solid ${isSelected ? "#FF6B35" : "rgba(255,255,255,0.08)"}`,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12
+                      }}
+                    >
+                      <div style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 6,
+                        border: `2px solid ${isSelected ? "#FF6B35" : "#555"}`,
+                        background: isSelected ? "#FF6B35" : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        transition: "all 0.2s"
+                      }}>
+                        {isSelected && <span style={{ color: "#fff", fontSize: 12, fontWeight: 900 }}>✓</span>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: isSelected ? "#FF6B35" : "#ddd" }}>
+                          {event.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
+                          {event.location} · {event.date} · Budget: {formatINR(event.budget)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <button 
+              onClick={() => { setShowAssignModal(false); setAssigningUser(null); setSelectedEvents([]); }}
+              style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#aaa", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={() => handleAssignEvents(assigningUser.id, selectedEvents)}
+              disabled={saving}
+              style={{ flex: 2, padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#9B72CF,#FF6B35)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", opacity: saving ? 0.6 : 1 }}
+            >
+              {saving ? "💾 Saving..." : `✅ Assign ${selectedEvents.length} Event${selectedEvents.length !== 1 ? 's' : ''}`}
+            </button>
+          </div>
         </Modal>
       )}
 
