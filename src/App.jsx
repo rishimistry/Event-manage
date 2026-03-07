@@ -105,8 +105,8 @@ function StyledSelect({ value, onChange, children, style = {} }) {
 /* ── Expense Row ─────────────────────────────────────────────────── */
 function ExpenseRow({ exp, index, onDelete }) {
   const [open, setOpen] = useState(false);
-  const cat = CATEGORIES.find(c => c.id === exp.category);
-  const pay = PAYMENT_MODES.find(p => p.id === exp.payMode);
+  const cat = CATEGORIES.find(c => c.id === exp.category) || CATEGORIES[5]; // Default to misc if not found
+  const pay = PAYMENT_MODES.find(p => p.id === exp.payMode) || PAYMENT_MODES[0]; // Default to cash if not found
   return (
     <div className="expense-row" style={{
       border: `1px solid ${open ? cat?.color + "55" : "rgba(255,255,255,0.06)"}`,
@@ -260,10 +260,10 @@ export default function EventXpense() {
     toastTimer.current = setTimeout(() => setToast(null), 3000);
   };
 
-  // Helper: mark one subscription as loaded, stop loading when all 3 are done
+  // Helper: mark one subscription as loaded, stop loading when all 4 are done
   const markLoaded = () => {
     loadedCount.current += 1;
-    if (loadedCount.current >= 3) {
+    if (loadedCount.current >= 4) {
       setLoading(false);
     }
   };
@@ -283,32 +283,36 @@ export default function EventXpense() {
 
     // Timeout fallback — never stay on loading screen forever
     const timeout = setTimeout(() => {
-      if (loadedCount.current < 3) {
+      if (loadedCount.current < 4) {
         console.warn("Firebase loading timed out after 8s — showing app anyway");
         setLoading(false);
       }
     }, 8000);
 
     const unsubEvents = subscribeToEvents((data) => {
+      console.log("Events loaded:", data.length);
       setEvents(data);
       markLoaded();
     }, handleSubError);
 
     const unsubExpenses = subscribeToExpenses((data) => {
+      console.log("Expenses loaded:", data.length);
       setExpenses(data);
       markLoaded();
     }, handleSubError);
 
     const unsubStaff = subscribeToStaff((data) => {
+      console.log("Staff loaded:", data.length);
       setStaff(data);
       markLoaded();
     }, handleSubError);
 
-    // Admin: subscribe to all user profiles
-    let unsubUsers = () => { };
-    if (canManageUsers) {
-      unsubUsers = subscribeToUsers((data) => setAllUsers(data), handleSubError);
-    }
+    // Subscribe to all user profiles (needed for staff names in expense form)
+    const unsubUsers = subscribeToUsers((data) => {
+      console.log("Users loaded:", data.length);
+      setAllUsers(data);
+      markLoaded();
+    }, handleSubError);
 
     // Admin: subscribe to activity logs
     let unsubLogs = () => { };
@@ -324,7 +328,7 @@ export default function EventXpense() {
       unsubUsers();
       unsubLogs();
     };
-  }, [user, canManageUsers, isAdmin]);
+  }, [user, isAdmin]);
 
 
 
@@ -353,6 +357,13 @@ export default function EventXpense() {
       }
     }
   }, [events, activeEvent, reportEvent, isAdmin, userProfile?.assignedEvents]);
+
+  // ── Auto-fill staff name in expense form ──
+  useEffect(() => {
+    if (userProfile?.role === "staff" && userProfile?.name && !form.addedBy) {
+      setForm(f => ({ ...f, addedBy: userProfile.name }));
+    }
+  }, [userProfile, form.addedBy]);
 
   // ── Auth gating ──
   if (authLoading) return <LoadingScreen />;
@@ -398,8 +409,8 @@ export default function EventXpense() {
     ...pm, total: eventExpenses.filter(e => e.payMode === pm.id).reduce((s, e) => s + e.amount, 0),
   })).filter(p => p.total > 0);
 
-  // Staff names for dropdowns (extract .name from Firestore objects)
-  const staffNames = staff.map(s => s.name || s);
+  // Staff names for dropdowns - get from users collection with role=staff
+  const staffNames = allUsers.filter(u => u.role === "staff").map(u => u.name);
 
   /* ══════════════════════════════════════════════════════════════
      HANDLERS — All writes go to Firestore
@@ -1178,12 +1189,27 @@ export default function EventXpense() {
                     <div className="form-field">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                         <label className="form-label" style={{ marginBottom: 0 }}>Your Name *</label>
-                        <button onClick={() => setShowAddStaff(true)} style={{ fontSize: 10, fontWeight: 700, color: "#9B72CF", background: "rgba(155,114,207,0.15)", border: "none", borderRadius: 8, padding: "3px 10px", cursor: "pointer" }}>+ Add Staff</button>
+                        {(isAdmin || canManageEvents) && (
+                          <button onClick={() => setShowAddStaff(true)} style={{ fontSize: 10, fontWeight: 700, color: "#9B72CF", background: "rgba(155,114,207,0.15)", border: "none", borderRadius: 8, padding: "3px 10px", cursor: "pointer" }}>+ Add Staff</button>
+                        )}
                       </div>
-                      <StyledSelect value={form.addedBy} onChange={e => setForm(f => ({ ...f, addedBy: e.target.value }))}>
-                        <option value="" style={{ background: "#141418" }}>— Select staff member —</option>
-                        {staffNames.map(s => <option key={s} value={s} style={{ background: "#141418" }}>{s}</option>)}
-                      </StyledSelect>
+                      
+                      {/* Staff: Show read-only input with their name */}
+                      {userProfile?.role === "staff" ? (
+                        <input 
+                          type="text" 
+                          className="form-input" 
+                          value={userProfile.name} 
+                          readOnly 
+                          style={{ background: "rgba(255,255,255,0.03)", cursor: "not-allowed", color: "#888" }}
+                        />
+                      ) : (
+                        /* Admin/Manager: Show dropdown to select staff */
+                        <StyledSelect value={form.addedBy} onChange={e => setForm(f => ({ ...f, addedBy: e.target.value }))}>
+                          <option value="" style={{ background: "#141418" }}>— Select staff member —</option>
+                          {staffNames.map(s => <option key={s} value={s} style={{ background: "#141418" }}>{s}</option>)}
+                        </StyledSelect>
+                      )}
                     </div>
                     <div className="form-field">
                       <label className="form-label">Note (optional)</label>

@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "node seed-events.js",
+    "seed:expenses": "node seed-expenses.js",
+    "update:expenses": "node update-expenses.js",
+    "fix:categories": "node fix-categories.js",
+    "add:dates": "node add-dates.js"
   },
   "dependencies": {
     "firebase": "^12.10.0",
