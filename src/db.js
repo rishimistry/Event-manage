@@ -24,6 +24,8 @@ const eventsCol = collection(db, "events");
 const expensesCol = collection(db, "expenses");
 const staffCol = collection(db, "staff");
 const usersCol = collection(db, "users");
+const registrationRequestsCol = collection(db, "registrationRequests");
+const notificationsCol = collection(db, "notifications");
 
 // ══════════════════════════════════════════════════════════════
 //  EVENTS
@@ -286,6 +288,17 @@ export async function updateUserRole(uid, role) {
 }
 
 /**
+ * Update a user's profile information.
+ */
+export async function updateUserProfile(uid, updates) {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, { 
+        ...updates,
+        updatedAt: serverTimestamp() 
+    });
+}
+
+/**
  * Assign events to a manager or staff member (admin only).
  */
 export async function assignEventsToUser(uid, eventIds) {
@@ -351,5 +364,196 @@ export function subscribeToActivityLogs(onData, onError, limit = 50) {
     }, (error) => {
         console.error("Error subscribing to activity logs:", error);
         if (onError) onError(error);
+    });
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  REGISTRATION REQUESTS
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Create a registration request when a user signs up
+ */
+export async function createRegistrationRequest(uid, userData) {
+    const requestRef = doc(registrationRequestsCol, uid);
+    await setDoc(requestRef, {
+        uid,
+        name: userData.name,
+        email: userData.email,
+        requestedRole: userData.role,
+        status: "pending",
+        createdAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Get a registration request by UID
+ */
+export async function getRegistrationRequest(uid) {
+    const requestRef = doc(registrationRequestsCol, uid);
+    const snap = await getDoc(requestRef);
+    if (snap.exists()) return { id: snap.id, ...snap.data() };
+    return null;
+}
+
+/**
+ * Subscribe to registration requests
+ */
+export function subscribeToRegistrationRequests(onData, onError) {
+    return onSnapshot(registrationRequestsCol, (snapshot) => {
+        const requests = snapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+        }));
+        onData(requests);
+    }, (error) => {
+        console.error("Error subscribing to registration requests:", error);
+        if (onError) onError(error);
+    });
+}
+
+/**
+ * Approve a registration request
+ */
+export async function approveRegistrationRequest(requestId, approverUid, approverName, approverRole) {
+    const requestRef = doc(registrationRequestsCol, requestId);
+    const requestSnap = await getDoc(requestRef);
+    
+    if (!requestSnap.exists()) {
+        throw new Error("Request not found");
+    }
+    
+    const requestData = requestSnap.data();
+    
+    // Create user profile
+    const userRef = doc(usersCol, requestData.uid);
+    await setDoc(userRef, {
+        name: requestData.name,
+        email: requestData.email,
+        role: requestData.requestedRole,
+        assignedEvents: [],
+        assignedTo: null,
+        createdAt: serverTimestamp(),
+        approvedBy: approverUid,
+        approvedAt: serverTimestamp(),
+    });
+    
+    // Update request status
+    await updateDoc(requestRef, {
+        status: "approved",
+        approvedBy: approverUid,
+        approvedAt: serverTimestamp(),
+    });
+    
+    // Log activity
+    await logActivity({
+        action: "request_approved",
+        userId: approverUid,
+        userName: approverName,
+        userRole: approverRole,
+        targetUserId: requestData.uid,
+        targetUserName: requestData.name,
+        details: `Approved ${requestData.requestedRole} request for ${requestData.name}`,
+    });
+    
+    // Create notification for the approved user
+    await addDoc(notificationsCol, {
+        userId: requestData.uid,
+        type: "request_approved",
+        title: "Account Approved! 🎉",
+        message: `Your ${requestData.requestedRole} account has been approved. You can now access the system.`,
+        read: false,
+        createdAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Reject a registration request
+ */
+export async function rejectRegistrationRequest(requestId, approverUid, approverName, approverRole, reason = "") {
+    const requestRef = doc(registrationRequestsCol, requestId);
+    const requestSnap = await getDoc(requestRef);
+    
+    if (!requestSnap.exists()) {
+        throw new Error("Request not found");
+    }
+    
+    const requestData = requestSnap.data();
+    
+    // Update request status
+    await updateDoc(requestRef, {
+        status: "rejected",
+        rejectedBy: approverUid,
+        rejectedAt: serverTimestamp(),
+        rejectionReason: reason,
+    });
+    
+    // Log activity
+    await logActivity({
+        action: "request_rejected",
+        userId: approverUid,
+        userName: approverName,
+        userRole: approverRole,
+        targetUserId: requestData.uid,
+        targetUserName: requestData.name,
+        details: `Rejected ${requestData.requestedRole} request for ${requestData.name}${reason ? `: ${reason}` : ''}`,
+    });
+    
+    // Create notification for the rejected user
+    await addDoc(notificationsCol, {
+        userId: requestData.uid,
+        type: "request_rejected",
+        title: "Account Request Rejected",
+        message: `Your ${requestData.requestedRole} account request has been rejected.${reason ? ` Reason: ${reason}` : ''}`,
+        read: false,
+        createdAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Create a notification for admins about new registration request
+ */
+export async function notifyAdminsOfNewRequest(requestData) {
+    // This will be picked up by admins listening to notifications
+    await addDoc(notificationsCol, {
+        userId: "admin", // Special ID for admin notifications
+        type: "new_registration_request",
+        title: "New Registration Request",
+        message: `${requestData.name} requested ${requestData.requestedRole} access`,
+        requestId: requestData.uid,
+        read: false,
+        createdAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Subscribe to notifications for a user
+ */
+export function subscribeToNotifications(userId, onData, onError) {
+    return onSnapshot(notificationsCol, (snapshot) => {
+        const notifications = snapshot.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter(n => n.userId === userId || n.userId === "admin")
+            .sort((a, b) => {
+                const aTime = a.createdAt?.toMillis() || 0;
+                const bTime = b.createdAt?.toMillis() || 0;
+                return bTime - aTime;
+            });
+        onData(notifications);
+    }, (error) => {
+        console.error("Error subscribing to notifications:", error);
+        if (onError) onError(error);
+    });
+}
+
+/**
+ * Mark notification as read
+ */
+export async function markNotificationAsRead(notificationId) {
+    const notifRef = doc(notificationsCol, notificationId);
+    await updateDoc(notifRef, {
+        read: true,
+        readAt: serverTimestamp(),
     });
 }

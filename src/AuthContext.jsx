@@ -15,7 +15,7 @@ import {
     updateProfile,
 } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "./firebase";
-import { createUserProfile, getUserProfile } from "./db";
+import { createUserProfile, getUserProfile, createRegistrationRequest, getRegistrationRequest, notifyAdminsOfNewRequest } from "./db";
 
 const AuthContext = createContext(null);
 
@@ -25,9 +25,10 @@ export function useAuth() {
     return ctx;
 }
 
-export function AuthProvider({ children }) {
+export function AuthProvider({ children}) {
     const [user, setUser] = useState(null);
     const [userProfile, setUserProfile] = useState(null);
+    const [registrationRequest, setRegistrationRequest] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -45,6 +46,13 @@ export function AuthProvider({ children }) {
                         });
                         profile = await getUserProfile(firebaseUser.uid);
                     }
+                    
+                    // If no profile, check for registration request
+                    if (!profile) {
+                        const request = await getRegistrationRequest(firebaseUser.uid);
+                        setRegistrationRequest(request);
+                    }
+                    
                     setUserProfile(profile);
                 } catch (err) {
                     console.error("Error fetching user profile:", err);
@@ -52,6 +60,7 @@ export function AuthProvider({ children }) {
             } else {
                 setUser(null);
                 setUserProfile(null);
+                setRegistrationRequest(null);
             }
             setLoading(false);
         });
@@ -84,9 +93,17 @@ export function AuthProvider({ children }) {
         const safeRole = ["manager", "staff"].includes(role) ? role : "staff";
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName: name });
-        await createUserProfile(cred.user.uid, { name, email, role: safeRole });
-        const profile = await getUserProfile(cred.user.uid);
-        setUserProfile(profile);
+        
+        // Create registration request instead of direct profile
+        await createRegistrationRequest(cred.user.uid, { name, email, role: safeRole });
+        
+        // Notify admins
+        await notifyAdminsOfNewRequest({ uid: cred.user.uid, name, email, requestedRole: safeRole });
+        
+        // Get the request
+        const request = await getRegistrationRequest(cred.user.uid);
+        setRegistrationRequest(request);
+        
         return cred;
     };
 
@@ -99,6 +116,7 @@ export function AuthProvider({ children }) {
     const value = {
         user,
         userProfile,
+        registrationRequest,
         loading,
         login,
         register,
@@ -108,6 +126,7 @@ export function AuthProvider({ children }) {
         isStaff: userProfile?.role === "staff",
         canManageEvents: ["admin", "manager"].includes(userProfile?.role),
         canManageUsers: userProfile?.role === "admin",
+        canApproveStaff: ["admin", "manager"].includes(userProfile?.role),
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

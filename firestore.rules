@@ -140,5 +140,53 @@ service cloud.firestore {
       // Only admins and managers can delete staff entries
       allow delete: if isManagerOrAdmin();
     }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Registration Requests Collection
+    // ══════════════════════════════════════════════════════════════
+    match /registrationRequests/{requestId} {
+      // Users can read their own registration request
+      allow read: if isSignedIn() && 
+                    (request.auth.uid == requestId || 
+                     isAdmin() || 
+                     (isManager() && get(/databases/$(database)/documents/registrationRequests/$(requestId)).data.requestedRole == 'staff'));
+      
+      // Any authenticated user can create their own registration request
+      allow create: if isSignedIn() && 
+                      request.auth.uid == requestId &&
+                      request.resource.data.uid == request.auth.uid &&
+                      request.resource.data.status == "pending" &&
+                      request.resource.data.requestedRole in ["staff", "manager"];
+      
+      // Only admins can approve/reject manager requests
+      // Admins and managers can approve/reject staff requests
+      allow update: if (isAdmin() && resource.data.requestedRole == "manager") ||
+                      (isManagerOrAdmin() && resource.data.requestedRole == "staff");
+      
+      // Only admins can delete registration requests
+      allow delete: if isAdmin();
+    }
+    
+    // ══════════════════════════════════════════════════════════════
+    //  Notifications Collection
+    // ══════════════════════════════════════════════════════════════
+    match /notifications/{notificationId} {
+      // Users can read their own notifications or admin notifications
+      allow read: if isSignedIn() && 
+                    (resource.data.userId == request.auth.uid || 
+                     (resource.data.userId == "admin" && isAdmin()));
+      
+      // System can create notifications (any authenticated user for system-generated notifications)
+      allow create: if isSignedIn();
+      
+      // Users can update their own notifications (mark as read)
+      // Admins can update admin notifications
+      allow update: if isSignedIn() && 
+                      (resource.data.userId == request.auth.uid || 
+                       (resource.data.userId == "admin" && isAdmin()));
+      
+      // Only admins can delete notifications
+      allow delete: if isAdmin();
+    }
   }
 }

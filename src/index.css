@@ -33,6 +33,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Light Theme */
+:root[data-theme="light"] {
+  --bg-primary: #F5F5F7;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-hover: rgba(255, 255, 255, 1);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.12);
+  --text-primary: #1A1A1F;
+  --text-secondary: #666;
+  --text-muted: #999;
+}
+
 html, body {
   margin: 0;
   padding: 0;

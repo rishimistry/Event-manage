@@ -24,6 +24,30 @@ const firebaseConfig = {
 // When this email logs in, their profile auto-receives "admin" role.
 export const ADMIN_EMAIL = "admin@eventexpense.com";
 
+// ══════════════════════════════════════════════════════════════
+//  EmailJS Configuration (Free Plan - No Blaze Required)
+//  ──────────────────────────────────────────────────────────────
+//  Get these values from https://www.emailjs.com/
+//  1. Sign up for free account
+//  2. Add email service (Gmail recommended)
+//  3. Create email templates
+//  4. Copy IDs below
+// ══════════════════════════════════════════════════════════════
+
+export const EMAILJS_CONFIG = {
+  publicKey: "ucMp4ALBFynD_O5id",        // From Account tab
+  serviceId: "service_njlj9ub",                 // From Email Services tab
+  approvalTemplateId: "template_6vtaioa", // Template for approval emails
+  rejectionTemplateId: "template_fnggdbg", // Template for rejection emails
+  appUrl: window.location.origin,               // Your app URL for login button
+};
+
+// To enable email notifications:
+// 1. Follow setup guide in EMAIL_FREE_PLAN.md
+// 2. Replace the values above with your EmailJS credentials
+// 3. Install EmailJS: npm install @emailjs/browser
+// 4. Emails will be sent automatically on approve/reject
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

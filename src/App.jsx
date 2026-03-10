@@ -2,12 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { useAuth } from "./AuthContext";
 import AuthPage from "./AuthPage";
+import WaitingApproval from "./WaitingApproval";
+import { sendApprovalEmail, sendRejectionEmail } from "./emailService";
 import {
   subscribeToEvents,
   subscribeToExpenses,
   subscribeToStaff,
   subscribeToUsers,
+  subscribeToRegistrationRequests,
+  approveRegistrationRequest as dbApproveRequest,
+  rejectRegistrationRequest as dbRejectRequest,
   updateUserRole as dbUpdateUserRole,
+  updateUserProfile as dbUpdateUserProfile,
   assignEventsToUser as dbAssignEventsToUser,
   assignStaffToManager as dbAssignStaffToManager,
   addEvent as dbAddEvent,
@@ -45,16 +51,27 @@ function formatINR(n) {
 
 /* ── Icon Helper — renders SVG files or emoji text ───────────────── */
 function Icon({ src, size = 20, color, style = {} }) {
+  const [theme, setTheme] = useState(document.documentElement.getAttribute('data-theme') || 'dark');
+  
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+  
   if (!src) return null;
   const isSvg = typeof src === "string" && src.endsWith(".svg");
   if (isSvg) {
+    const isDark = theme !== 'light';
     return (
       <img
         src={`/${src}`}
         alt=""
         style={{
           width: size, height: size, objectFit: "contain",
-          filter: "brightness(0) invert(1)",
+          filter: isDark ? "brightness(0) invert(1)" : "brightness(0)",
           ...style,
         }}
       />
@@ -218,13 +235,14 @@ function Modal({ title, onClose, children }) {
    ══════════════════════════════════════════════════════════════════ */
 export default function EventXpense() {
   // ── Auth ──
-  const { user, userProfile, loading: authLoading, logout, isAdmin, canManageEvents, canManageUsers } = useAuth();
+  const { user, userProfile, registrationRequest, loading: authLoading, logout, isAdmin, canManageEvents, canManageUsers, canApproveStaff } = useAuth();
 
   // ── Firebase-synced state ──
   const [events, setEvents] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [staff, setStaff] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [registrationRequests, setRegistrationRequests] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState(null);
@@ -242,6 +260,12 @@ export default function EventXpense() {
   const [form, setForm] = useState({ category: "travel", payMode: "upi", desc: "", amount: "", addedBy: "", note: "" });
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [notifications, setNotifications] = useState(true);
+  const [passwordForm, setPasswordForm] = useState({ current: "", new: "", confirm: "" });
+  const [profileForm, setProfileForm] = useState({ name: "" });
   const [eventForm, setEventForm] = useState({ name: "", location: "", budget: "", date: "" });
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [newStaffName, setNewStaffName] = useState("");
@@ -320,6 +344,18 @@ export default function EventXpense() {
       unsubLogs = subscribeToActivityLogs((data) => setActivityLogs(data), handleSubError);
     }
 
+    // Admin/Manager: subscribe to registration requests
+    let unsubRequests = () => { };
+    if (isAdmin || canApproveStaff) {
+      unsubRequests = subscribeToRegistrationRequests((data) => {
+        // Filter based on role
+        const filtered = isAdmin 
+          ? data // Admin sees all requests
+          : data.filter(r => r.requestedRole === "staff"); // Manager sees only staff requests
+        setRegistrationRequests(filtered);
+      }, handleSubError);
+    }
+
     return () => {
       clearTimeout(timeout);
       unsubEvents();
@@ -327,8 +363,9 @@ export default function EventXpense() {
       unsubStaff();
       unsubUsers();
       unsubLogs();
+      unsubRequests();
     };
-  }, [user, isAdmin]);
+  }, [user, isAdmin, canApproveStaff]);
 
 
 
@@ -358,6 +395,19 @@ export default function EventXpense() {
     }
   }, [events, activeEvent, reportEvent, isAdmin, userProfile?.assignedEvents]);
 
+  // ── Apply theme ──
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setDarkMode(savedTheme === 'dark');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
+  useEffect(() => {
+    const theme = darkMode ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [darkMode]);
+
   // ── Auto-fill staff name in expense form ──
   useEffect(() => {
     if (userProfile?.role === "staff" && userProfile?.name && !form.addedBy) {
@@ -368,6 +418,11 @@ export default function EventXpense() {
   // ── Auth gating ──
   if (authLoading) return <LoadingScreen />;
   if (!user) return <AuthPage />;
+  
+  // If user is authenticated but has no profile, check registration request
+  if (user && !userProfile) {
+    return <WaitingApproval />;
+  }
 
   // ── Show loading screen while connecting ──
   if (loading) {
@@ -595,13 +650,159 @@ export default function EventXpense() {
 
     setSaving(true);
     try {
-      await dbAddStaff(n);
+      await addStaff(n);
       setNewStaffName("");
       setShowAddStaff(false);
-      showToast(`${n} added to team! 👤`);
+      showToast(`${n} added to team! 🎉`, "success");
     } catch (err) {
-      console.error("Error adding staff:", err);
-      showToast("Failed to add staff member!", "error");
+      console.error(err);
+      showToast("Failed to add staff", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Settings handlers
+  const handleChangePassword = async () => {
+    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
+      showToast("Fill all fields!", "error");
+      return;
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      showToast("Passwords don't match!", "error");
+      return;
+    }
+    if (passwordForm.new.length < 6) {
+      showToast("Password must be at least 6 characters!", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Import required Firebase auth functions
+      const { updatePassword, reauthenticateWithCredential, EmailAuthProvider } = await import("firebase/auth");
+      
+      // Re-authenticate user
+      const credential = EmailAuthProvider.credential(user.email, passwordForm.current);
+      await reauthenticateWithCredential(user, credential);
+      
+      // Update password
+      await updatePassword(user, passwordForm.new);
+      
+      setPasswordForm({ current: "", new: "", confirm: "" });
+      setShowChangePassword(false);
+      showToast("Password changed successfully! 🔐", "success");
+    } catch (err) {
+      console.error(err);
+      if (err.code === "auth/wrong-password") {
+        showToast("Current password is incorrect!", "error");
+      } else {
+        showToast("Failed to change password", "error");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    const newName = profileForm.name.trim();
+    if (!newName) {
+      showToast("Enter a name!", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await dbUpdateUserProfile(user.uid, { name: newName });
+      setShowEditProfile(false);
+      showToast("Profile updated! ✅", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to update profile", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Registration request handlers
+  const handleApproveRequest = async (request) => {
+    setSaving(true);
+    try {
+      // Approve in database
+      await dbApproveRequest(
+        request.id,
+        user.uid,
+        userProfile?.name || "Unknown",
+        userProfile?.role || "admin"
+      );
+      
+      // Send approval email
+      try {
+        const emailResult = await sendApprovalEmail(
+          {
+            name: request.name,
+            email: request.email,
+            requestedRole: request.requestedRole,
+          },
+          userProfile?.name || "Administrator"
+        );
+        
+        if (emailResult.success) {
+          console.log("✅ Approval email sent successfully");
+        } else if (emailResult.reason === "not_configured") {
+          console.log("ℹ️ Email not configured - user will need to check app");
+        }
+      } catch (emailError) {
+        console.error("Email send error (non-critical):", emailError);
+        // Don't fail the approval if email fails
+      }
+      
+      showToast(`✅ Approved ${request.name}'s ${request.requestedRole} request!`, "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to approve request", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRejectRequest = async (request, reason = "") => {
+    setSaving(true);
+    try {
+      // Reject in database
+      await dbRejectRequest(
+        request.id,
+        user.uid,
+        userProfile?.name || "Unknown",
+        userProfile?.role || "admin",
+        reason
+      );
+      
+      // Send rejection email
+      try {
+        const emailResult = await sendRejectionEmail(
+          {
+            name: request.name,
+            email: request.email,
+            requestedRole: request.requestedRole,
+          },
+          reason
+        );
+        
+        if (emailResult.success) {
+          console.log("✅ Rejection email sent successfully");
+        } else if (emailResult.reason === "not_configured") {
+          console.log("ℹ️ Email not configured - user will need to check app");
+        }
+      } catch (emailError) {
+        console.error("Email send error (non-critical):", emailError);
+        // Don't fail the rejection if email fails
+      }
+      
+      showToast(`❌ Rejected ${request.name}'s request`, "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to reject request", "error");
     } finally {
       setSaving(false);
     }
@@ -793,6 +994,7 @@ export default function EventXpense() {
     { id: "dashboard", icon: "report-analytics.svg", label: "Overview" },
     { id: "add", icon: "money-rupee-circle-line.svg", label: "Add Expense" },
     { id: "reports", icon: "file-chart-line.svg", label: "Reports" },
+    ...(isAdmin || canApproveStaff ? [{ id: "requests", icon: "stack-overflow-line.svg", label: "Requests" }] : []),
     ...(isAdmin ? [{ id: "events", icon: "file-chart-line.svg", label: "Events" }] : []),
     ...(isAdmin ? [{ id: "analytics", icon: "file-chart-line.svg", label: "Analytics" }] : []),
     ...(isAdmin || canManageEvents ? [{ id: "users", icon: "stack-overflow-line.svg", label: isAdmin ? "Users" : "My Team" }] : []),
@@ -1001,8 +1203,10 @@ export default function EventXpense() {
               key={item.id}
               className={`nav-btn ${view === item.id ? "nav-btn--active" : "nav-btn--inactive"}`}
               onClick={() => setView(item.id)}
+              title={item.label}
             >
-              <Icon src={item.icon} size={14} /> {item.label}
+              <Icon src={item.icon} size={18} />
+              <span className="nav-btn__label">{item.label}</span>
             </button>
           ))}
         </div>
@@ -1331,6 +1535,182 @@ export default function EventXpense() {
                     </>
                   )}
                 </>
+              )}
+            </div>
+          )}
+
+          {/* ══════ REGISTRATION REQUESTS (Admin/Manager) ══════ */}
+          {view === "requests" && (isAdmin || canApproveStaff) && (
+            <div>
+              <div className="form-title">Registration Requests</div>
+              <div className="form-subtitle">
+                {isAdmin ? "Approve or reject user registration requests" : "Approve or reject staff registration requests"}
+              </div>
+
+              {/* Pending Requests */}
+              <div style={{ marginBottom: 24 }}>
+                <div className="section-title">⏳ Pending Requests</div>
+                {registrationRequests.filter(r => r.status === "pending").length === 0 ? (
+                  <div className="empty-state">
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>No Pending Requests</div>
+                    <div style={{ color: "#666" }}>All registration requests have been processed</div>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 12 }}>
+                    {registrationRequests.filter(r => r.status === "pending").map((request, idx) => {
+                      const roleColor = request.requestedRole === "manager" ? "#9B72CF" : "#4ECDC4";
+                      const timeStr = request.createdAt?.toDate ? new Date(request.createdAt.toDate()).toLocaleString("en-IN", { 
+                        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" 
+                      }) : "Unknown time";
+
+                      return (
+                        <div key={request.id} style={{ 
+                          background: "rgba(255,255,255,0.04)", 
+                          border: "1px solid rgba(255,255,255,0.08)", 
+                          borderRadius: 14, 
+                          padding: 16,
+                          animation: `fadeSlide 0.3s ease ${idx * 0.05}s both`
+                        }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
+                            <div style={{ 
+                              width: 48, 
+                              height: 48, 
+                              borderRadius: "50%", 
+                              background: `linear-gradient(135deg, ${roleColor}, #FF6B35)`, 
+                              display: "flex", 
+                              alignItems: "center", 
+                              justifyContent: "center", 
+                              fontSize: 20, 
+                              fontWeight: 800,
+                              flexShrink: 0
+                            }}>
+                              {request.name?.[0]?.toUpperCase() || "U"}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{request.name}</div>
+                              <div style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>{request.email}</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <div style={{ 
+                                  display: "inline-block",
+                                  padding: "4px 10px", 
+                                  borderRadius: 10, 
+                                  background: `${roleColor}22`, 
+                                  color: roleColor, 
+                                  fontSize: 11, 
+                                  fontWeight: 800,
+                                  textTransform: "uppercase"
+                                }}>
+                                  {request.requestedRole}
+                                </div>
+                                <div style={{ fontSize: 11, color: "#555" }}>· {timeStr}</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button
+                              onClick={() => handleApproveRequest(request)}
+                              disabled={saving}
+                              style={{
+                                flex: 1,
+                                padding: "10px 16px",
+                                borderRadius: 10,
+                                border: "none",
+                                background: "linear-gradient(135deg, #4ECDC4, #457B9D)",
+                                color: "#fff",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                fontFamily: "inherit",
+                                opacity: saving ? 0.6 : 1,
+                                transition: "transform 0.15s"
+                              }}
+                              onMouseEnter={(e) => !saving && (e.currentTarget.style.transform = "translateY(-1px)")}
+                              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                            >
+                              ✅ Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const reason = prompt("Rejection reason (optional):");
+                                if (reason !== null) {
+                                  handleRejectRequest(request, reason);
+                                }
+                              }}
+                              disabled={saving}
+                              style={{
+                                flex: 1,
+                                padding: "10px 16px",
+                                borderRadius: 10,
+                                border: "1px solid rgba(230,57,70,0.3)",
+                                background: "rgba(230,57,70,0.1)",
+                                color: "#E63946",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                fontFamily: "inherit",
+                                opacity: saving ? 0.6 : 1,
+                                transition: "all 0.15s"
+                              }}
+                              onMouseEnter={(e) => !saving && (e.currentTarget.style.background = "rgba(230,57,70,0.15)")}
+                              onMouseLeave={(e) => e.currentTarget.style.background = "rgba(230,57,70,0.1)"}
+                            >
+                              ❌ Reject
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Processed Requests */}
+              {registrationRequests.filter(r => r.status !== "pending").length > 0 && (
+                <div>
+                  <div className="section-title">📋 Processed Requests</div>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {registrationRequests.filter(r => r.status !== "pending").slice(0, 10).map((request) => {
+                      const isApproved = request.status === "approved";
+                      const statusColor = isApproved ? "#4ECDC4" : "#E63946";
+                      const timeStr = request.createdAt?.toDate ? new Date(request.createdAt.toDate()).toLocaleString("en-IN", { 
+                        month: "short", day: "numeric" 
+                      }) : "Unknown";
+
+                      return (
+                        <div key={request.id} style={{ 
+                          background: "rgba(255,255,255,0.02)", 
+                          border: `1px solid ${statusColor}22`, 
+                          borderRadius: 10, 
+                          padding: 12,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12
+                        }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{request.name}</div>
+                            <div style={{ fontSize: 11, color: "#666" }}>{request.email} · {request.requestedRole}</div>
+                          </div>
+                          <div style={{ 
+                            padding: "4px 10px", 
+                            borderRadius: 8, 
+                            background: `${statusColor}22`, 
+                            color: statusColor, 
+                            fontSize: 10, 
+                            fontWeight: 800,
+                            textTransform: "uppercase",
+                            flexShrink: 0
+                          }}>
+                            {request.status}
+                          </div>
+                          <div style={{ fontSize: 10, color: "#555", flexShrink: 0 }}>{timeStr}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1884,30 +2264,53 @@ export default function EventXpense() {
               <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🌙 Dark Mode</div>
-                  <div style={{ fontSize: 11, color: "#666" }}>Currently enabled (default)</div>
-                </div>
-                <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(78,205,196,0.15)", color: "#4ECDC4", fontSize: 11, fontWeight: 700 }}>Active</div>
-              </div>
-
-              <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🔔 Notifications</div>
-                  <div style={{ fontSize: 11, color: "#666" }}>Get updates on expenses</div>
+                  <div style={{ fontSize: 11, color: "#666" }}>Switch between dark and light theme</div>
                 </div>
                 <button 
-                  onClick={() => showToast("Notifications feature coming soon! 🔔", "info")}
-                  style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.08)", color: "#ddd", fontSize: 11, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                  onClick={() => {
+                    setDarkMode(!darkMode);
+                    showToast(darkMode ? "Light mode enabled ☀️" : "Dark mode enabled 🌙", "success");
+                  }}
+                  style={{ 
+                    padding: "6px 12px", 
+                    borderRadius: 8, 
+                    background: darkMode ? "rgba(78,205,196,0.15)" : "rgba(255,255,255,0.08)", 
+                    color: darkMode ? "#4ECDC4" : "#ddd", 
+                    fontSize: 11, 
+                    fontWeight: 700, 
+                    border: "none", 
+                    cursor: "pointer", 
+                    fontFamily: "inherit" 
+                  }}
                 >
-                  Configure
+                  {darkMode ? "ON" : "OFF"}
                 </button>
               </div>
 
               <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>💾 Auto-Save</div>
-                  <div style={{ fontSize: 11, color: "#666" }}>Automatically save changes</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🔔 Notifications</div>
+                  <div style={{ fontSize: 11, color: "#666" }}>Get updates on expenses</div>
                 </div>
-                <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(78,205,196,0.15)", color: "#4ECDC4", fontSize: 11, fontWeight: 700 }}>Enabled</div>
+                <button 
+                  onClick={() => {
+                    setNotifications(!notifications);
+                    showToast(notifications ? "Notifications disabled 🔕" : "Notifications enabled 🔔", "success");
+                  }}
+                  style={{ 
+                    padding: "6px 12px", 
+                    borderRadius: 8, 
+                    background: notifications ? "rgba(78,205,196,0.15)" : "rgba(255,255,255,0.08)", 
+                    color: notifications ? "#4ECDC4" : "#ddd", 
+                    fontSize: 11, 
+                    fontWeight: 700, 
+                    border: "none", 
+                    cursor: "pointer", 
+                    fontFamily: "inherit" 
+                  }}
+                >
+                  {notifications ? "ON" : "OFF"}
+                </button>
               </div>
             </div>
 
@@ -1918,7 +2321,8 @@ export default function EventXpense() {
               <button 
                 onClick={() => {
                   setShowSettings(false);
-                  showToast("Password change feature coming soon! 🔐", "info");
+                  setShowChangePassword(true);
+                  setPasswordForm({ current: "", new: "", confirm: "" });
                 }}
                 style={{ 
                   width: "100%", 
@@ -1943,6 +2347,37 @@ export default function EventXpense() {
               >
                 <span style={{ fontSize: 16 }}>🔐</span>
                 <span>Change Password</span>
+              </button>
+
+              <button 
+                onClick={() => {
+                  setShowSettings(false);
+                  setShowEditProfile(true);
+                  setProfileForm({ name: userProfile?.name || "" });
+                }}
+                style={{ 
+                  width: "100%", 
+                  padding: "12px 16px", 
+                  borderRadius: 10, 
+                  border: "1px solid rgba(255,255,255,0.1)", 
+                  background: "rgba(255,255,255,0.05)", 
+                  color: "#ddd", 
+                  fontSize: 13, 
+                  fontWeight: 600, 
+                  cursor: "pointer", 
+                  fontFamily: "inherit",
+                  marginBottom: 10,
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+              >
+                <span style={{ fontSize: 16 }}>✏️</span>
+                <span>Edit Profile</span>
               </button>
 
               <button 
@@ -1980,6 +2415,105 @@ export default function EventXpense() {
             <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>EventXpense v2.2</div>
             <div style={{ fontSize: 10, color: "#555" }}>Team Expense Management System</div>
           </div>
+        </Modal>
+      )}
+
+      {/* ── CHANGE PASSWORD MODAL ── */}
+      {showChangePassword && (
+        <Modal title="🔐 Change Password" onClose={() => setShowChangePassword(false)}>
+          <div className="form-field">
+            <label className="form-label">Current Password *</label>
+            <input 
+              type="password" 
+              className="form-input" 
+              placeholder="Enter current password" 
+              value={passwordForm.current} 
+              onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))} 
+              style={{ colorScheme: "dark" }}
+            />
+          </div>
+          <div className="form-field">
+            <label className="form-label">New Password *</label>
+            <input 
+              type="password" 
+              className="form-input" 
+              placeholder="At least 6 characters" 
+              value={passwordForm.new} 
+              onChange={e => setPasswordForm(f => ({ ...f, new: e.target.value }))} 
+              style={{ colorScheme: "dark" }}
+            />
+          </div>
+          <div className="form-field">
+            <label className="form-label">Confirm New Password *</label>
+            <input 
+              type="password" 
+              className="form-input" 
+              placeholder="Re-enter new password" 
+              value={passwordForm.confirm} 
+              onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} 
+              style={{ colorScheme: "dark" }}
+            />
+          </div>
+          <button 
+            onClick={handleChangePassword} 
+            disabled={saving} 
+            style={{ 
+              width: "100%", 
+              padding: "14px", 
+              borderRadius: 12, 
+              border: "none", 
+              background: "linear-gradient(135deg,#FF6B35,#E63946)", 
+              color: "#fff", 
+              fontSize: 14, 
+              fontWeight: 800, 
+              cursor: "pointer", 
+              marginTop: 4, 
+              fontFamily: "inherit", 
+              opacity: saving ? 0.6 : 1 
+            }}
+          >
+            {saving ? "💾 Updating..." : "✅ Change Password"}
+          </button>
+        </Modal>
+      )}
+
+      {/* ── EDIT PROFILE MODAL ── */}
+      {showEditProfile && (
+        <Modal title="✏️ Edit Profile" onClose={() => setShowEditProfile(false)}>
+          <div className="form-field">
+            <label className="form-label">Full Name *</label>
+            <input 
+              type="text" 
+              className="form-input" 
+              placeholder="Enter your name" 
+              value={profileForm.name} 
+              onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))} 
+              autoFocus
+            />
+          </div>
+          <div style={{ marginBottom: 16, padding: 12, background: "rgba(255,107,53,0.1)", borderRadius: 10, border: "1px solid rgba(255,107,53,0.2)" }}>
+            <div style={{ fontSize: 11, color: "#FF6B35", fontWeight: 700, marginBottom: 4 }}>📧 Email: {userProfile?.email}</div>
+            <div style={{ fontSize: 10, color: "#888" }}>Email cannot be changed</div>
+          </div>
+          <button 
+            onClick={handleUpdateProfile} 
+            disabled={saving} 
+            style={{ 
+              width: "100%", 
+              padding: "14px", 
+              borderRadius: 12, 
+              border: "none", 
+              background: "linear-gradient(135deg,#9B72CF,#FF6B35)", 
+              color: "#fff", 
+              fontSize: 14, 
+              fontWeight: 800, 
+              cursor: "pointer", 
+              fontFamily: "inherit", 
+              opacity: saving ? 0.6 : 1 
+            }}
+          >
+            {saving ? "💾 Saving..." : "✅ Update Profile"}
+          </button>
         </Modal>
       )}
 

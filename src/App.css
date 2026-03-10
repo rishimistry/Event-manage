@@ -95,6 +95,10 @@
   min-width: 0;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 /* ── Header ────────────────────────────────────────────────── */
@@ -102,6 +106,8 @@
   padding: 20px 20px 14px;
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 1400px;
 }
 
 .header-row {
@@ -197,6 +203,8 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 1400px;
 }
 
 .nav-btn {
@@ -210,6 +218,15 @@
   border-bottom: 2px solid transparent;
   transition: all 0.2s;
   font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.nav-btn__label {
+  display: none;
 }
 
 .nav-btn--active {
@@ -230,6 +247,8 @@
   position: relative;
   z-index: 1;
   padding: 20px 20px 100px;
+  width: 100%;
+  max-width: 1400px;
 }
 
 /* ── Budget Card ───────────────────────────────────────────── */
@@ -823,11 +842,17 @@
   .nav-bar {
     display: none;
   }
+  
+  /* If nav bar is shown on desktop, show labels */
+  .nav-btn__label {
+    display: inline;
+  }
 
   /* ── Page Content gets more breathing room ────────────────── */
   .page-content {
     padding: 24px 32px 48px;
-    max-width: 1000px;
+    max-width: 1200px;
+    margin: 0 auto;
   }
 
   /* ── Budget Card scales ───────────────────────────────────── */
@@ -925,7 +950,8 @@
 
   .page-content {
     padding: 32px 48px 48px;
-    max-width: 1200px;
+    max-width: 1400px;
+    margin: 0 auto;
   }
 
   .budget-card {
@@ -967,4 +993,220 @@
   .budget-card__amount {
     font-size: 22px;
   }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES
+   ══════════════════════════════════════════════════════════════ */
+:root[data-theme="light"] .app-shell {
+  background: var(--bg-primary);
+}
+
+:root[data-theme="light"] .bg-orb--orange {
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.08) 0%, transparent 70%);
+}
+
+:root[data-theme="light"] .bg-orb--purple {
+  background: radial-gradient(circle, rgba(155, 114, 207, 0.06) 0%, transparent 70%);
+}
+
+/* Sidebar */
+:root[data-theme="light"] .sidebar {
+  background: rgba(0, 0, 0, 0.02);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .sidebar__brand-label {
+  color: var(--accent-orange);
+}
+
+:root[data-theme="light"] .sidebar__brand-title {
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .sidebar__nav-title {
+  color: #999;
+}
+
+:root[data-theme="light"] .sidebar__nav-btn--inactive {
+  color: #666;
+}
+
+:root[data-theme="light"] .sidebar__nav-btn--inactive:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #333;
+}
+
+:root[data-theme="light"] .sidebar__event-btn--inactive {
+  color: #666;
+}
+
+:root[data-theme="light"] .sidebar__event-btn--inactive:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #333;
+}
+
+/* Header */
+:root[data-theme="light"] .header-brand-label {
+  color: var(--accent-orange);
+}
+
+:root[data-theme="light"] .header-title {
+  color: var(--text-primary);
+}
+
+/* Navigation */
+:root[data-theme="light"] .nav-bar {
+  background: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .nav-btn--inactive {
+  color: #666;
+}
+
+:root[data-theme="light"] .nav-btn--inactive:hover {
+  color: #333;
+}
+
+/* Event Tabs */
+:root[data-theme="light"] .event-tab--inactive {
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+}
+
+:root[data-theme="light"] .event-tab--inactive:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+}
+
+/* Budget Card */
+:root[data-theme="light"] .budget-card {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.12), rgba(155, 114, 207, 0.08));
+  border: 1px solid rgba(255, 107, 53, 0.2);
+}
+
+:root[data-theme="light"] .budget-card__header {
+  color: var(--accent-orange);
+}
+
+:root[data-theme="light"] .budget-card__amount {
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .budget-card__label {
+  color: #666;
+}
+
+/* Section Titles */
+:root[data-theme="light"] .section-title {
+  color: #666;
+}
+
+/* Payment & Category Cards */
+:root[data-theme="light"] .category-card,
+:root[data-theme="light"] .payment-card {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .category-card:hover,
+:root[data-theme="light"] .payment-card:hover {
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Expense Rows */
+:root[data-theme="light"] .expense-row {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .expense-row__desc {
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .expense-row__meta {
+  color: #666;
+}
+
+/* Forms */
+:root[data-theme="light"] .form-label {
+  color: #666;
+}
+
+:root[data-theme="light"] .form-input,
+:root[data-theme="light"] select {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #1A1A1F;
+}
+
+:root[data-theme="light"] .form-input::placeholder {
+  color: #999;
+}
+
+:root[data-theme="light"] .form-input:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  background: #FFFFFF;
+}
+
+/* Filter Chips */
+:root[data-theme="light"] .filter-label {
+  color: #999;
+}
+
+/* Reports */
+:root[data-theme="light"] .report-summary-card {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(155, 114, 207, 0.06));
+  border: 1px solid rgba(255, 107, 53, 0.15);
+}
+
+:root[data-theme="light"] .report-team-row {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+:root[data-theme="light"] .report-team-row:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Modal */
+:root[data-theme="light"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="light"] .modal-content {
+  background: #FFFFFF;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Desktop Page Title */
+:root[data-theme="light"] .desktop-page-title {
+  color: var(--text-primary);
+}
+
+/* Empty State */
+:root[data-theme="light"] .empty-state {
+  color: #666;
+}
+
+/* Toast */
+:root[data-theme="light"] .toast {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar for light theme */
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
