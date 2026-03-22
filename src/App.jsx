@@ -52,7 +52,7 @@ function formatINR(n) {
 }
 
 /* ── Icon Helper — renders SVG files or emoji text ───────────────── */
-function Icon({ src, size = 20, color, style = {} }) {
+function Icon({ src, size = 20, color, style = {}, inSidebar = false }) {
   const [theme, setTheme] = useState(document.documentElement.getAttribute('data-theme') || 'dark');
   
   useEffect(() => {
@@ -66,14 +66,25 @@ function Icon({ src, size = 20, color, style = {} }) {
   if (!src) return null;
   const isSvg = typeof src === "string" && src.endsWith(".svg");
   if (isSvg) {
-    const isDark = theme !== 'light';
+    const isLightMode = theme === 'light';
+    
+    // Sidebar icons: always white (inverted)
+    // Main content icons in light mode: black (not inverted)
+    // Main content icons in dark mode: white (inverted)
+    let filter;
+    if (inSidebar) {
+      filter = "brightness(0) invert(1)"; // Always white
+    } else {
+      filter = isLightMode ? "brightness(0)" : "brightness(0) invert(1)"; // Black in light, white in dark
+    }
+    
     return (
       <img
         src={`/${src}`}
         alt=""
         style={{
           width: size, height: size, objectFit: "contain",
-          filter: isDark ? "brightness(0) invert(1)" : "brightness(0)",
+          filter: filter,
           ...style,
         }}
       />
@@ -128,8 +139,7 @@ function ExpenseRow({ exp, index, onDelete }) {
   const pay = PAYMENT_MODES.find(p => p.id === exp.payMode) || PAYMENT_MODES[0]; // Default to cash if not found
   return (
     <div className="expense-row" style={{
-      border: `1px solid ${open ? cat?.color + "55" : "rgba(255,255,255,0.06)"}`,
-      background: open ? `${cat?.color}0D` : "rgba(255,255,255,0.04)",
+      border: `1px solid ${open ? cat?.color + "55" : "var(--border-default)"}`,
       animation: `fadeSlide 0.3s ease ${index * 0.04}s both`,
     }}>
       <div className="expense-row__header" onClick={() => setOpen(o => !o)}>
@@ -138,34 +148,34 @@ function ExpenseRow({ exp, index, onDelete }) {
           <div className="expense-row__desc">{exp.desc}</div>
           <div className="expense-row__meta">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: 8, background: `${pay?.color}22`, color: pay?.color, fontSize: 9, fontWeight: 800 }}><Icon src={pay?.icon} size={12} color={pay?.color} /> {pay?.label}</span>
-            <span style={{ fontSize: 10, color: "#555" }}>· {exp.addedBy} · {exp.date}</span>
+            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>· {exp.addedBy} · {exp.date}</span>
           </div>
         </div>
         <div className="expense-row__actions">
           <div style={{ fontSize: 15, fontWeight: 900, color: cat?.color }}>{formatINR(exp.amount)}</div>
-          <div style={{ fontSize: 10, color: "#555", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }}>▼</div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }}>▼</div>
         </div>
       </div>
       <div style={{ maxHeight: open ? 320 : 0, overflow: "hidden", transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)" }}>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px" }}>
+        <div style={{ borderTop: "1px solid var(--border-default)", padding: "12px 14px" }}>
           <div className="expense-row__detail-grid">
             {[
               { label: "Category", value: cat?.label, icon: cat?.icon, color: cat?.color },
               { label: "Payment", value: pay?.label, icon: pay?.icon, color: pay?.color },
-              { label: "Amount", value: formatINR(exp.amount), color: "#fff" },
-              { label: "Date", value: exp.date, color: "#aaa" },
-              { label: "Logged By", value: exp.addedBy, color: "#aaa" },
+              { label: "Amount", value: formatINR(exp.amount), color: "var(--text-primary)" },
+              { label: "Date", value: exp.date, color: "var(--text-secondary)" },
+              { label: "Logged By", value: exp.addedBy, color: "var(--text-secondary)" },
             ].map(item => (
-              <div key={item.label} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 10px" }}>
-                <div style={{ fontSize: 9, color: "#555", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>{item.label}</div>
+              <div key={item.label} className="bg-subtle" style={{ borderRadius: 8, padding: "8px 10px" }}>
+                <div style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>{item.label}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: item.color, display: "flex", alignItems: "center", gap: 4 }}>{item.icon && <Icon src={item.icon} size={14} color={item.color} />}{item.value}</div>
               </div>
             ))}
           </div>
           {exp.note && (
-            <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 10px", marginBottom: 10 }}>
-              <div style={{ fontSize: 9, color: "#555", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>📝 Note</div>
-              <div style={{ fontSize: 12, color: "#bbb" }}>{exp.note}</div>
+            <div className="bg-subtle" style={{ borderRadius: 8, padding: "8px 10px", marginBottom: 10 }}>
+              <div style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>📝 Note</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{exp.note}</div>
             </div>
           )}
           <div className="expense-row__btn-row">
@@ -1107,7 +1117,7 @@ export default function EventXpense() {
             className={`sidebar__nav-btn ${view === item.id ? "sidebar__nav-btn--active" : "sidebar__nav-btn--inactive"}`}
             onClick={() => setView(item.id)}
           >
-            <span className="sidebar__nav-icon"><Icon src={item.icon} size={18} /></span>
+            <span className="sidebar__nav-icon"><Icon src={item.icon} size={18} inSidebar={true} /></span>
             {item.label}
           </button>
         ))}
@@ -1215,23 +1225,24 @@ export default function EventXpense() {
               
               {/* Profile Section */}
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 10, background: "var(--bg-elevated)", border: "1px solid var(--border-default)" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "white" }}>
                     {userProfile?.name?.[0]?.toUpperCase() || "U"}
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#ddd" }}>{userProfile?.name || "User"}</div>
-                    <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase" }}>{userProfile?.role || "Staff"}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{userProfile?.name || "User"}</div>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase" }}>{userProfile?.role || "Staff"}</div>
                   </div>
                 </div>
                 <button 
                   onClick={() => setShowSettings(true)}
+                  className="header-settings-btn"
                   style={{ 
                     padding: "10px 18px", 
                     borderRadius: 10, 
-                    border: "1px solid rgba(255,255,255,0.15)", 
-                    background: "rgba(255,255,255,0.05)", 
-                    color: "#fff", 
+                    border: "1px solid var(--border-default)", 
+                    background: "var(--bg-elevated)", 
+                    color: "var(--text-primary)", 
                     fontSize: 13, 
                     fontWeight: 600, 
                     cursor: "pointer",
@@ -1242,14 +1253,13 @@ export default function EventXpense() {
                     gap: 8,
                     height: 40
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
                 >
                   <span>⚙️</span>
                   <span>Settings</span>
                 </button>
                 <button 
                   onClick={logout}
+                  className="header-logout-btn"
                   style={{ 
                     padding: "10px 18px", 
                     borderRadius: 10, 
@@ -1266,8 +1276,6 @@ export default function EventXpense() {
                     gap: 8,
                     height: 40
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(239,68,68,0.2)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "rgba(239,68,68,0.1)"}
                 >
                   <span>🚪</span>
                   <span>Logout</span>
@@ -1320,16 +1328,16 @@ export default function EventXpense() {
                   {/* Budget Card */}
                   <div className="budget-card">
                     <div className="budget-card__header">
-                      {currentEvent.name} <span style={{ color: "#555", fontWeight: 400 }}>· {currentEvent.location}</span>
+                      {currentEvent.name} <span style={{ color: "var(--text-subtle)", fontWeight: 400 }}>· {currentEvent.location}</span>
                     </div>
                     <div className="budget-card__stats">
                       <div>
                         <div className="budget-card__label">Total Spent</div>
-                        <div className="budget-card__amount" style={{ color: "#E5E7EB" }}><AnimatedNumber value={totalSpent} /></div>
+                        <div className="budget-card__amount"><AnimatedNumber value={totalSpent} /></div>
                       </div>
                       <div className="budget-card__budget-col" style={{ textAlign: "center" }}>
                         <div className="budget-card__label">Budget</div>
-                        <div className="budget-card__amount" style={{ color: "#9CA3AF" }}>{formatINR(currentEvent.budget)}</div>
+                        <div className="budget-card__amount" style={{ color: "var(--text-secondary)" }}>{formatINR(currentEvent.budget)}</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div className="budget-card__label">{remaining >= 0 ? "Remaining" : "Over Budget"}</div>
@@ -1370,7 +1378,7 @@ export default function EventXpense() {
                             >
                               <div style={{ fontSize: 20 }}><Icon src={pm.icon} size={22} color={pm.color} /></div>
                               <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2, fontWeight: 700 }}>{pm.label}</div>
-                              <div style={{ fontSize: 12, fontWeight: 800, color: pm.color, marginTop: 3 }}>{formatINR(pm.total)}</div>
+                              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginTop: 3 }}>{formatINR(pm.total)}</div>
                               <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
                                 {pmExpenses.length} {isExpanded ? '▲' : '▼'}
                               </div>
@@ -1411,7 +1419,7 @@ export default function EventXpense() {
                             >
                               <div style={{ fontSize: 20 }}><Icon src={cat.icon} size={22} color={cat.color} /></div>
                               <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{cat.label}</div>
-                              <div style={{ fontSize: 12, fontWeight: 800, color: cat.color, marginTop: 4 }}>{formatINR(cat.total)}</div>
+                              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginTop: 4 }}>{formatINR(cat.total)}</div>
                               <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
                                 {catExpenses.length} {isExpanded ? '▲' : '▼'}
                               </div>
@@ -1532,8 +1540,8 @@ export default function EventXpense() {
                       ) : (
                         /* Admin/Manager: Show dropdown to select staff */
                         <StyledSelect value={form.addedBy} onChange={e => setForm(f => ({ ...f, addedBy: e.target.value }))}>
-                          <option value="" style={{ background: "#141418" }}>— Select staff member —</option>
-                          {staffNames.map(s => <option key={s} value={s} style={{ background: "#141418" }}>{s}</option>)}
+                          <option value="">— Select staff member —</option>
+                          {staffNames.map(s => <option key={s} value={s}>{s}</option>)}
                         </StyledSelect>
                       )}
                     </div>
@@ -1547,7 +1555,7 @@ export default function EventXpense() {
                   <div className="form-field" style={{ marginBottom: 22 }}>
                     <label className="form-label">Event</label>
                     <StyledSelect value={activeEvent || ""} onChange={e => setActiveEvent(e.target.value)}>
-                      {events.map(ev => <option key={ev.id} value={ev.id} style={{ background: "#141418" }}>{ev.name} — {ev.location}</option>)}
+                      {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name} — {ev.location}</option>)}
                     </StyledSelect>
                   </div>
 
@@ -1575,7 +1583,7 @@ export default function EventXpense() {
                   <div className="form-field" style={{ marginBottom: 20 }}>
                     <label className="form-label">Select Event</label>
                     <StyledSelect value={reportEvent || ""} onChange={e => setReportEvent(e.target.value)}>
-                      {visibleEvents.map(ev => <option key={ev.id} value={ev.id} style={{ background: "#141418" }}>{ev.name} — {ev.location}</option>)}
+                      {visibleEvents.map(ev => <option key={ev.id} value={ev.id}>{ev.name} — {ev.location}</option>)}
                     </StyledSelect>
                   </div>
 
@@ -1880,9 +1888,9 @@ export default function EventXpense() {
                           <div style={{ marginBottom: 12 }}>
                             <label className="form-label" style={{ marginBottom: 6 }}>Change Role</label>
                             <StyledSelect value={u.role} onChange={(e) => handleChangeRole(u.id, e.target.value)}>
-                              <option value="admin" style={{ background: "#141418" }}>Admin</option>
-                              <option value="manager" style={{ background: "#141418" }}>Manager</option>
-                              <option value="staff" style={{ background: "#141418" }}>Staff</option>
+                              <option value="admin">Admin</option>
+                              <option value="manager">Manager</option>
+                              <option value="staff">Staff</option>
                             </StyledSelect>
                           </div>
                         )}
