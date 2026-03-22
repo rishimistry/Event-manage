@@ -300,6 +300,7 @@ export async function updateUserProfile(uid, updates) {
 }
 
 /**
+<<<<<<< HEAD
  * Delete a user profile (admin only).
  */
 export async function deleteUser(uid) {
@@ -308,6 +309,8 @@ export async function deleteUser(uid) {
 }
 
 /**
+=======
+>>>>>>> 9314e9c153878f7b63d1c001e2938225c2938e70
  * Assign events to a manager or staff member (admin only).
  */
 export async function assignEventsToUser(uid, eventIds) {
