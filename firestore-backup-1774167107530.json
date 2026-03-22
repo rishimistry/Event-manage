@@ -1,0 +1,2093 @@
+{
+  "timestamp": "2026-03-22T08:11:46.856Z",
+  "collections": {
+    "events": [
+      {
+        "id": "C6CJX1oWgIJu6OXMhYwK",
+        "data": {
+          "budget": 350000,
+          "createdByUid": "admin",
+          "date": "2024-11-25",
+          "name": "Product Launch Event",
+          "createdBy": "admin@eventexpense.com",
+          "createdAt": "2026-03-07T05:09:30.000Z",
+          "assignedTo": [],
+          "assignedManager": null,
+          "location": "Delhi"
+        }
+      },
+      {
+        "id": "Dm3NtAn3xeuOVbG5k1iX",
+        "data": {
+          "assignedManager": null,
+          "location": "Hyderabad",
+          "assignedTo": [],
+          "createdAt": "2026-03-07T05:09:30.000Z",
+          "createdBy": "admin@eventexpense.com",
+          "name": "Diwali Celebration",
+          "budget": 200000,
+          "createdByUid": "admin",
+          "date": "2024-11-12"
+        }
+      },
+      {
+        "id": "Os40dlm4xnjjBrudoVMN",
+        "data": {
+          "location": "Goa",
+          "assignedManager": null,
+          "assignedTo": [],
+          "createdAt": "2026-03-07T05:09:30.000Z",
+          "name": "Annual Corporate Retreat",
+          "createdBy": "admin@eventexpense.com",
+          "createdByUid": "admin",
+          "date": "2024-12-01",
+          "budget": 1200000
+        }
+      },
+      {
+        "id": "UCEK3uMRLFLBjFEL4hqr",
+        "data": {
+          "location": "Mumbai",
+          "assignedManager": null,
+          "assignedTo": [],
+          "createdAt": "2026-03-07T05:09:29.000Z",
+          "name": "Sharma Wedding",
+          "createdBy": "admin@eventexpense.com",
+          "budget": 500000,
+          "createdByUid": "admin",
+          "date": "2024-12-15"
+        }
+      },
+      {
+        "id": "WPjByhiMSf0rsrZdE9fH",
+        "data": {
+          "createdAt": "2026-03-10T07:21:03.000Z",
+          "budget": 2000000,
+          "date": "2026-11-24",
+          "name": "Dangi wedding",
+          "location": "Rajasthan",
+          "createdBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "assignedManager": null
+        }
+      },
+      {
+        "id": "v9TFETt1petEJBMd8s1E",
+        "data": {
+          "date": "2024-11-20",
+          "createdByUid": "admin",
+          "budget": 750000,
+          "name": "Tech Conference 2024",
+          "createdBy": "admin@eventexpense.com",
+          "createdAt": "2026-03-07T05:09:29.000Z",
+          "assignedTo": [],
+          "assignedManager": null,
+          "location": "Bangalore"
+        }
+      }
+    ],
+    "expenses": [
+      {
+        "id": "1yFgRCoFT8WcitfvJnuo",
+        "data": {
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "food",
+          "date": "2024-11-08",
+          "createdByUid": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "addedBy": "Sneha Reddy",
+          "amount": 35000,
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "desc": "Hotel booking for team",
+          "createdBy": "sneha@gmail.com"
+        }
+      },
+      {
+        "id": "2hy0NLVj0JjCFyS8WHF5",
+        "data": {
+          "desc": "The royal bloom hotel Jaipur whole team booking",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "amount": 80000,
+          "addedBy": "vivek",
+          "createdByUid": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "date": "2026-03-10",
+          "category": "food",
+          "payMode": "upi",
+          "createdAt": "2026-03-10T07:26:00.000Z",
+          "note": ""
+        }
+      },
+      {
+        "id": "629GvQWVwNfdXbTMUKEx",
+        "data": {
+          "amount": 45000,
+          "addedBy": "Rahul Sharma",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "date": "2024-11-22",
+          "createdBy": "Rahul@gmail.com",
+          "desc": "Flight tickets for team",
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "category": "travel",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:15.000Z"
+        }
+      },
+      {
+        "id": "694eWZrI669Qr3Bl5zx2",
+        "data": {
+          "payMode": "upi",
+          "createdAt": "2026-03-09T09:19:19.000Z",
+          "note": "",
+          "category": "travel",
+          "addedBy": "Shruti",
+          "amount": 5000,
+          "createdByUid": "ArweikabH1P9d5SEiuXsr1GZtMs1",
+          "date": "2026-03-09",
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "desc": "Flight From Mumbai to Surat"
+        }
+      },
+      {
+        "id": "8mT8QhjEtoTDXTpdE2Wp",
+        "data": {
+          "category": "misc",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "date": "2024-11-06",
+          "createdByUid": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "amount": 25000,
+          "addedBy": "Vikaram Singh",
+          "desc": "Videography team",
+          "createdBy": "vikram@gmail.com",
+          "eventId": "v9TFETt1petEJBMd8s1E"
+        }
+      },
+      {
+        "id": "8vzoFKC8L9GRn7cr373K",
+        "data": {
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "createdBy": "Rahul@gmail.com",
+          "desc": "Train tickets",
+          "addedBy": "Rahul Sharma",
+          "amount": 8500,
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "date": "2024-11-02",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "travel"
+        }
+      },
+      {
+        "id": "B8mhlOBj5Wm5PHYjn1Rv",
+        "data": {
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "desc": "Equipment rental",
+          "createdBy": "amit@gmail.com",
+          "addedBy": "Amit Kumar",
+          "amount": 15000,
+          "date": "2024-11-13",
+          "createdByUid": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "equipment"
+        }
+      },
+      {
+        "id": "DCpWlHiLQKCefk0mgvnl",
+        "data": {
+          "category": "equipment",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "amount": 18000,
+          "addedBy": "Priya Patel",
+          "createdByUid": "lI8twz8epYXxMAkd83j30DqHaZz1",
+          "date": "2024-11-24",
+          "createdBy": "priya@gmail.com",
+          "desc": "Venue decoration items",
+          "eventId": "UCEK3uMRLFLBjFEL4hqr"
+        }
+      },
+      {
+        "id": "E1JvN8srdI5YetwigqZU",
+        "data": {
+          "payMode": "cash",
+          "note": "",
+          "createdAt": "2026-03-07T06:18:57.000Z",
+          "category": "travel",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "desc": "Flight from Mumbai to surat",
+          "addedBy": "Rahul Sharma",
+          "amount": 3500,
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "date": "2026-03-07"
+        }
+      },
+      {
+        "id": "Fzt7n1W7ySJi5zk8eZP9",
+        "data": {
+          "category": "misc",
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "note": "",
+          "createdBy": "vikram@gmail.com",
+          "desc": "Videography team",
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "createdByUid": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "date": "2024-11-17",
+          "amount": 25000,
+          "addedBy": "Vikaram Singh"
+        }
+      },
+      {
+        "id": "H2sf75QDe3J36d4kfIGQ",
+        "data": {
+          "createdBy": "Rahul@gmail.com",
+          "desc": "Hotel booking for team",
+          "eventId": "UCEK3uMRLFLBjFEL4hqr",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "date": "2024-11-19",
+          "amount": 35000,
+          "addedBy": "Rahul Sharma",
+          "category": "food",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z"
+        }
+      },
+      {
+        "id": "N7IjK7k3jeKDnyTrIjOL",
+        "data": {
+          "amount": 4500,
+          "addedBy": "Jay",
+          "createdByUid": "DIAVk4t4EygHblsabQmHbWJSwN23",
+          "date": "2026-03-16",
+          "desc": "tools for events",
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "category": "equipment",
+          "payMode": "cash",
+          "createdAt": "2026-03-16T13:00:39.000Z",
+          "note": "789"
+        }
+      },
+      {
+        "id": "NBhIShPtLqzIm2Jyq4Mm",
+        "data": {
+          "payMode": "upi",
+          "createdAt": "2026-03-21T11:46:41.000Z",
+          "note": "7496",
+          "category": "decor",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "desc": "event decoration",
+          "date": "2026-03-21",
+          "createdByUid": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "addedBy": "Shruti",
+          "amount": 45960
+        }
+      },
+      {
+        "id": "PF5mCvBJzOqGDSLhu4Z1",
+        "data": {
+          "createdBy": "priya@gmail.com",
+          "desc": "Cab fare to venue",
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "amount": 1200,
+          "addedBy": "Priya Patel",
+          "createdByUid": "lI8twz8epYXxMAkd83j30DqHaZz1",
+          "date": "2024-11-22",
+          "category": "travel",
+          "payMode": "upi",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z"
+        }
+      },
+      {
+        "id": "PSQFZ30xg2paVbYrgDxO",
+        "data": {
+          "eventId": "UCEK3uMRLFLBjFEL4hqr",
+          "createdBy": "vikram@gmail.com",
+          "desc": "Train tickets",
+          "addedBy": "Vikaram Singh",
+          "amount": 8500,
+          "createdByUid": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "date": "2024-11-19",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "travel"
+        }
+      },
+      {
+        "id": "ULVflxmDhhDxF42QDvZk",
+        "data": {
+          "addedBy": "Amit Kumar",
+          "amount": 2000,
+          "createdByUid": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "date": "2024-11-29",
+          "eventId": "UCEK3uMRLFLBjFEL4hqr",
+          "createdBy": "amit@gmail.com",
+          "desc": "Emergency supplies",
+          "payMode": "cash",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "misc"
+        }
+      },
+      {
+        "id": "VOY8hCrrjLUM6HSr2TGu",
+        "data": {
+          "addedBy": "Smit real",
+          "amount": 25000,
+          "createdByUid": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "date": "2026-03-10",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "desc": "Flight from Surat to Jaipur Full team",
+          "payMode": "upi",
+          "note": "",
+          "createdAt": "2026-03-10T07:24:34.000Z",
+          "category": "travel"
+        }
+      },
+      {
+        "id": "WdlrfIHQQqqnaCaMkjRC",
+        "data": {
+          "category": "equipment",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:15.000Z",
+          "desc": "Transportation of goods",
+          "createdBy": "Rahul@gmail.com",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "date": "2024-11-04",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "amount": 5500,
+          "addedBy": "Rahul Sharma"
+        }
+      },
+      {
+        "id": "b84CVxiXN1undexrwGAe",
+        "data": {
+          "desc": "nasta",
+          "eventId": "UCEK3uMRLFLBjFEL4hqr",
+          "amount": 15000,
+          "addedBy": "shyam",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "date": "2026-03-07",
+          "category": "food",
+          "payMode": "upi",
+          "note": "fe",
+          "createdAt": "2026-03-07T18:01:53.000Z"
+        }
+      },
+      {
+        "id": "cTtMHRXpvekhrRbnx3R0",
+        "data": {
+          "category": "travel",
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "note": "",
+          "amount": 3500,
+          "addedBy": "Vikaram Singh",
+          "createdByUid": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "date": "2024-11-26",
+          "createdBy": "vikram@gmail.com",
+          "desc": "Fuel for company vehicle",
+          "eventId": "UCEK3uMRLFLBjFEL4hqr"
+        }
+      },
+      {
+        "id": "d4XaDXP2Y4mNqVk7j1Dh",
+        "data": {
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "date": "2026-03-07",
+          "amount": 7000,
+          "addedBy": "Rahul Sharma",
+          "desc": "Hotel stay 2 nights",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "category": "food",
+          "payMode": "cash",
+          "note": "Hotel Barsana",
+          "createdAt": "2026-03-07T05:40:18.000Z"
+        }
+      },
+      {
+        "id": "fPjrte69iMzysxQzelhg",
+        "data": {
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "desc": "Packaging supplies",
+          "createdBy": "priya@gmail.com",
+          "addedBy": "Priya Patel",
+          "amount": 2200,
+          "date": "2024-11-27",
+          "createdByUid": "lI8twz8epYXxMAkd83j30DqHaZz1",
+          "payMode": "cash",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "equipment"
+        }
+      },
+      {
+        "id": "gQt7pK68tnlap7JzWTH7",
+        "data": {
+          "category": "misc",
+          "payMode": "upi",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:15.000Z",
+          "createdBy": "sneha@gmail.com",
+          "desc": "Miscellaneous purchases",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "amount": 3200,
+          "addedBy": "Sneha Reddy",
+          "createdByUid": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "date": "2024-11-26"
+        }
+      },
+      {
+        "id": "jABqh4vggWVdKrV2mVL1",
+        "data": {
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "desc": "Videography team",
+          "createdBy": "Rahul@gmail.com",
+          "addedBy": "Rahul Sharma",
+          "amount": 25000,
+          "date": "2024-11-26",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:15.000Z",
+          "note": "",
+          "category": "misc"
+        }
+      },
+      {
+        "id": "jVqRdJpMYIObAZYywCxY",
+        "data": {
+          "category": "food",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "createdBy": "amit@gmail.com",
+          "desc": "Accommodation for speakers",
+          "eventId": "Os40dlm4xnjjBrudoVMN",
+          "date": "2024-11-10",
+          "createdByUid": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "amount": 28000,
+          "addedBy": "Amit Kumar"
+        }
+      },
+      {
+        "id": "koByBeq01ZFui2ryHPwp",
+        "data": {
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "food",
+          "date": "2024-11-29",
+          "createdByUid": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "addedBy": "Sneha Reddy",
+          "amount": 3500,
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "desc": "Room service charges",
+          "createdBy": "sneha@gmail.com"
+        }
+      },
+      {
+        "id": "l30ARSqRxzP25vtXS6Xj",
+        "data": {
+          "category": "misc",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "date": "2024-11-06",
+          "createdByUid": "lI8twz8epYXxMAkd83j30DqHaZz1",
+          "amount": 8000,
+          "addedBy": "Priya Patel",
+          "createdBy": "priya@gmail.com",
+          "desc": "Gift items for guests",
+          "eventId": "Os40dlm4xnjjBrudoVMN"
+        }
+      },
+      {
+        "id": "mAhtKJcU9Fs0JYhqbeY1",
+        "data": {
+          "category": "misc",
+          "payMode": "upi",
+          "createdAt": "2026-03-07T05:11:15.000Z",
+          "note": "",
+          "date": "2024-11-10",
+          "createdByUid": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "amount": 4500,
+          "addedBy": "Vikaram Singh",
+          "desc": "Printing and stationery",
+          "createdBy": "vikram@gmail.com",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK"
+        }
+      },
+      {
+        "id": "q8FpzpypemhTUHFvnGru",
+        "data": {
+          "desc": "Buffet arrangement",
+          "createdBy": "Rahul@gmail.com",
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "date": "2024-11-05",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "amount": 25000,
+          "addedBy": "Rahul Sharma",
+          "category": "food",
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:15.000Z",
+          "note": ""
+        }
+      },
+      {
+        "id": "qaxIRMqNRki4fGN4snx7",
+        "data": {
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:15.000Z",
+          "note": "",
+          "category": "misc",
+          "addedBy": "Rahul Sharma",
+          "amount": 8000,
+          "date": "2024-11-24",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "desc": "Gift items for guests",
+          "createdBy": "Rahul@gmail.com"
+        }
+      },
+      {
+        "id": "sOKYStGvt6rqGhAcvZ4k",
+        "data": {
+          "date": "2024-11-18",
+          "createdByUid": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "addedBy": "Sneha Reddy",
+          "amount": 8000,
+          "eventId": "Os40dlm4xnjjBrudoVMN",
+          "desc": "Stage setup materials",
+          "createdBy": "sneha@gmail.com",
+          "payMode": "upi",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "equipment"
+        }
+      },
+      {
+        "id": "tpub6xG39DUqZ03Sc3ww",
+        "data": {
+          "createdByUid": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "date": "2024-11-05",
+          "addedBy": "Amit Kumar",
+          "amount": 30000,
+          "eventId": "Os40dlm4xnjjBrudoVMN",
+          "createdBy": "amit@gmail.com",
+          "desc": "Entertainment performers",
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "note": "",
+          "category": "misc"
+        }
+      },
+      {
+        "id": "wqNvBXLuanxhx8Zl6OnP",
+        "data": {
+          "category": "misc",
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "date": "2024-11-17",
+          "createdByUid": "lI8twz8epYXxMAkd83j30DqHaZz1",
+          "amount": 22000,
+          "addedBy": "Priya Patel",
+          "desc": "DJ and music system",
+          "createdBy": "priya@gmail.com",
+          "eventId": "Os40dlm4xnjjBrudoVMN"
+        }
+      },
+      {
+        "id": "xUWS7Hk6igirEGlL2JGC",
+        "data": {
+          "eventId": "Os40dlm4xnjjBrudoVMN",
+          "createdBy": "vikram@gmail.com",
+          "desc": "Stage setup materials",
+          "addedBy": "Vikaram Singh",
+          "amount": 8000,
+          "createdByUid": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "date": "2024-11-23",
+          "payMode": "upi",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "note": "",
+          "category": "equipment"
+        }
+      },
+      {
+        "id": "ybnGRjDpng3sgUKUL1qM",
+        "data": {
+          "category": "misc",
+          "payMode": "cash",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "desc": "Emergency supplies",
+          "createdBy": "amit@gmail.com",
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "amount": 2000,
+          "addedBy": "Amit Kumar",
+          "date": "2024-11-21",
+          "createdByUid": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2"
+        }
+      },
+      {
+        "id": "yn2XpN1rLwM4icTvsDco",
+        "data": {
+          "payMode": "card",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "note": "",
+          "category": "food",
+          "eventId": "Os40dlm4xnjjBrudoVMN",
+          "desc": "Hotel booking for team",
+          "createdBy": "amit@gmail.com",
+          "date": "2024-11-02",
+          "createdByUid": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "addedBy": "Amit Kumar",
+          "amount": 35000
+        }
+      },
+      {
+        "id": "zyQh9O1Xz6B5mWafJ5wM",
+        "data": {
+          "payMode": "card",
+          "note": "",
+          "createdAt": "2026-03-07T05:11:16.000Z",
+          "category": "misc",
+          "addedBy": "Rahul Sharma",
+          "amount": 25000,
+          "date": "2024-11-23",
+          "createdByUid": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "createdBy": "Rahul@gmail.com",
+          "desc": "Videography team"
+        }
+      }
+    ],
+    "staff": [],
+    "users": [
+      {
+        "id": "9wSJsRl2eVYdMwtQ9uMPecFNbe93",
+        "data": {
+          "name": "pranav prajapati",
+          "email": "pranavprajapati222@gmail.com",
+          "assignedTo": null,
+          "assignedEvents": [],
+          "role": "manager",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "createdAt": "2026-03-21T11:47:55.000Z",
+          "approvedAt": "2026-03-21T11:47:55.000Z"
+        }
+      },
+      {
+        "id": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+        "data": {
+          "role": "admin",
+          "createdAt": "2026-03-07T05:08:02.000Z",
+          "updatedAt": "2026-03-11T13:17:45.000Z",
+          "assignedEvents": [],
+          "assignedTo": null,
+          "email": "admin@eventexpense.com",
+          "name": "Admin"
+        }
+      },
+      {
+        "id": "Q4NlrNUCQNOvpHw1fXp8mdND1dg2",
+        "data": {
+          "name": "shyam",
+          "email": "shyam@gmail.com",
+          "updatedAt": "2026-03-09T09:27:30.000Z",
+          "assignedEvents": [
+            "C6CJX1oWgIJu6OXMhYwK",
+            "Dm3NtAn3xeuOVbG5k1iX"
+          ],
+          "assignedTo": null,
+          "role": "staff",
+          "createdAt": "2026-03-07T18:00:50.000Z"
+        }
+      },
+      {
+        "id": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+        "data": {
+          "role": "staff",
+          "createdAt": "2026-03-07T05:18:29.000Z",
+          "updatedAt": "2026-03-07T05:22:05.000Z",
+          "assignedEvents": [
+            "C6CJX1oWgIJu6OXMhYwK",
+            "Dm3NtAn3xeuOVbG5k1iX",
+            "Os40dlm4xnjjBrudoVMN",
+            "UCEK3uMRLFLBjFEL4hqr",
+            "v9TFETt1petEJBMd8s1E"
+          ],
+          "assignedTo": null,
+          "email": "amit@gmail.com",
+          "name": "Amit Kumar"
+        }
+      },
+      {
+        "id": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+        "data": {
+          "updatedAt": "2026-03-07T05:22:25.000Z",
+          "assignedTo": null,
+          "assignedEvents": [
+            "C6CJX1oWgIJu6OXMhYwK",
+            "Dm3NtAn3xeuOVbG5k1iX",
+            "Os40dlm4xnjjBrudoVMN",
+            "UCEK3uMRLFLBjFEL4hqr",
+            "v9TFETt1petEJBMd8s1E"
+          ],
+          "createdAt": "2026-03-07T05:18:59.000Z",
+          "role": "staff",
+          "name": "Vikaram Singh",
+          "email": "vikram@gmail.com"
+        }
+      },
+      {
+        "id": "b4kloosTsxSBr7VsjVtc434Kudn2",
+        "data": {
+          "role": "staff",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "createdAt": "2026-03-21T12:23:52.000Z",
+          "approvedAt": "2026-03-21T12:23:52.000Z",
+          "assignedTo": null,
+          "assignedEvents": [],
+          "email": "aman@gmail.com",
+          "name": "aman"
+        }
+      },
+      {
+        "id": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+        "data": {
+          "email": "Rahul@gmail.com",
+          "name": "Rahul Sharma",
+          "role": "staff",
+          "createdAt": "2026-03-07T05:17:58.000Z",
+          "assignedEvents": [
+            "C6CJX1oWgIJu6OXMhYwK",
+            "Dm3NtAn3xeuOVbG5k1iX",
+            "Os40dlm4xnjjBrudoVMN"
+          ],
+          "assignedTo": null,
+          "updatedAt": "2026-03-07T05:22:59.000Z"
+        }
+      },
+      {
+        "id": "iwUsvEsG2RYMGTfUxYi4tcP87lR2",
+        "data": {
+          "updatedAt": "2026-03-07T05:14:53.000Z",
+          "assignedEvents": [
+            "C6CJX1oWgIJu6OXMhYwK",
+            "Os40dlm4xnjjBrudoVMN",
+            "v9TFETt1petEJBMd8s1E"
+          ],
+          "assignedTo": null,
+          "role": "manager",
+          "createdAt": "2026-03-07T05:14:28.000Z",
+          "name": "Pranav",
+          "email": "pranav@gmail.com"
+        }
+      },
+      {
+        "id": "lI8twz8epYXxMAkd83j30DqHaZz1",
+        "data": {
+          "assignedEvents": [
+            "Dm3NtAn3xeuOVbG5k1iX",
+            "Os40dlm4xnjjBrudoVMN",
+            "UCEK3uMRLFLBjFEL4hqr",
+            "v9TFETt1petEJBMd8s1E"
+          ],
+          "assignedTo": null,
+          "updatedAt": "2026-03-07T05:23:59.000Z",
+          "role": "staff",
+          "createdAt": "2026-03-07T05:19:21.000Z",
+          "name": "Priya Patel",
+          "email": "priya@gmail.com"
+        }
+      },
+      {
+        "id": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+        "data": {
+          "role": "staff",
+          "createdAt": "2026-03-07T05:19:50.000Z",
+          "assignedTo": null,
+          "assignedEvents": [
+            "C6CJX1oWgIJu6OXMhYwK",
+            "Dm3NtAn3xeuOVbG5k1iX",
+            "Os40dlm4xnjjBrudoVMN",
+            "v9TFETt1petEJBMd8s1E"
+          ],
+          "updatedAt": "2026-03-07T05:24:33.000Z",
+          "email": "sneha@gmail.com",
+          "name": "Sneha Reddy"
+        }
+      }
+    ],
+    "registrationRequests": [
+      {
+        "id": "9wSJsRl2eVYdMwtQ9uMPecFNbe93",
+        "data": {
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-21T11:47:55.000Z",
+          "createdAt": "2026-03-21T11:42:01.000Z",
+          "status": "approved",
+          "uid": "9wSJsRl2eVYdMwtQ9uMPecFNbe93",
+          "email": "pranavprajapati222@gmail.com",
+          "name": "pranav prajapati",
+          "requestedRole": "manager"
+        }
+      },
+      {
+        "id": "AIjKb1QQ96d3ploPo26LpiaivDG3",
+        "data": {
+          "createdAt": "2026-03-10T07:11:48.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-10T07:13:52.000Z",
+          "status": "approved",
+          "email": "smit81447@gmail.com",
+          "uid": "AIjKb1QQ96d3ploPo26LpiaivDG3",
+          "requestedRole": "staff",
+          "name": "Smit real"
+        }
+      },
+      {
+        "id": "DIAVk4t4EygHblsabQmHbWJSwN23",
+        "data": {
+          "requestedRole": "staff",
+          "name": "Jay",
+          "email": "jay@gmail.com",
+          "uid": "DIAVk4t4EygHblsabQmHbWJSwN23",
+          "status": "approved",
+          "createdAt": "2026-03-08T12:15:22.000Z",
+          "approvedBy": "iwUsvEsG2RYMGTfUxYi4tcP87lR2",
+          "approvedAt": "2026-03-08T12:16:19.000Z"
+        }
+      },
+      {
+        "id": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+        "data": {
+          "status": "approved",
+          "createdAt": "2026-03-10T04:20:20.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-10T04:20:43.000Z",
+          "name": "mann",
+          "requestedRole": "staff",
+          "email": "rishimistry33@gmail.com",
+          "uid": "H9gl6xSM3fZUzhJUTaWqU5HSDD33"
+        }
+      },
+      {
+        "id": "L316MUWUEaMvn5SzUOBRz3vua1T2",
+        "data": {
+          "approvedAt": "2026-03-08T12:14:09.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "createdAt": "2026-03-08T12:12:54.000Z",
+          "status": "approved",
+          "email": "rishingppit@gmail.com",
+          "uid": "L316MUWUEaMvn5SzUOBRz3vua1T2",
+          "name": "Rishi",
+          "requestedRole": "staff"
+        }
+      },
+      {
+        "id": "TQXPOxFN0hZ0TVMJna2jeEHbW6l1",
+        "data": {
+          "createdAt": "2026-03-11T13:13:14.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-11T13:13:34.000Z",
+          "status": "approved",
+          "uid": "TQXPOxFN0hZ0TVMJna2jeEHbW6l1",
+          "email": "rishi.dev.projects@gmail.com",
+          "requestedRole": "staff",
+          "name": "Rishi.dev"
+        }
+      },
+      {
+        "id": "b4kloosTsxSBr7VsjVtc434Kudn2",
+        "data": {
+          "status": "approved",
+          "approvedAt": "2026-03-21T12:23:53.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "createdAt": "2026-03-21T12:15:59.000Z",
+          "name": "aman",
+          "requestedRole": "staff",
+          "uid": "b4kloosTsxSBr7VsjVtc434Kudn2",
+          "email": "aman@gmail.com"
+        }
+      },
+      {
+        "id": "bq9UNHodxDMxcS0Z3O8pIvyCtiP2",
+        "data": {
+          "name": "Test123",
+          "requestedRole": "staff",
+          "email": "test123@gmail.com",
+          "uid": "bq9UNHodxDMxcS0Z3O8pIvyCtiP2",
+          "status": "approved",
+          "createdAt": "2026-03-11T13:00:56.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-11T13:01:30.000Z"
+        }
+      },
+      {
+        "id": "j4EonWGFrxXkE19K9bi9vhenxV02",
+        "data": {
+          "name": "Mann",
+          "requestedRole": "staff",
+          "uid": "j4EonWGFrxXkE19K9bi9vhenxV02",
+          "email": "rishimistry63@gmail.com",
+          "status": "approved",
+          "createdAt": "2026-03-10T04:22:35.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-10T04:22:55.000Z"
+        }
+      },
+      {
+        "id": "vH09TaRVrZSWPIiG7ZLwEcESC1h2",
+        "data": {
+          "name": "Jayyy",
+          "requestedRole": "manager",
+          "uid": "vH09TaRVrZSWPIiG7ZLwEcESC1h2",
+          "email": "mistryjayy@gmail.com",
+          "status": "approved",
+          "createdAt": "2026-03-15T14:54:21.000Z",
+          "approvedBy": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "approvedAt": "2026-03-15T14:54:55.000Z"
+        }
+      }
+    ],
+    "notifications": [
+      {
+        "id": "2GW0z7sT9OWacSabGF9G",
+        "data": {
+          "createdAt": "2026-03-08T12:14:09.000Z",
+          "read": false,
+          "userId": "L316MUWUEaMvn5SzUOBRz3vua1T2",
+          "message": "Your staff account has been approved. You can now access the system.",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉"
+        }
+      },
+      {
+        "id": "47IcHI1sYyxCP4vR4QWx",
+        "data": {
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "message": "Your staff account has been approved. You can now access the system.",
+          "userId": "j4EonWGFrxXkE19K9bi9vhenxV02",
+          "read": false,
+          "createdAt": "2026-03-10T04:22:55.000Z"
+        }
+      },
+      {
+        "id": "4Vw4YMyMCz8BUuWm0jWW",
+        "data": {
+          "userId": "admin",
+          "read": false,
+          "createdAt": "2026-03-10T07:11:48.000Z",
+          "type": "new_registration_request",
+          "title": "New Registration Request",
+          "requestId": "AIjKb1QQ96d3ploPo26LpiaivDG3",
+          "message": "Smit real requested staff access"
+        }
+      },
+      {
+        "id": "54a24YGz6vEgoAKvQAhd",
+        "data": {
+          "userId": "TQXPOxFN0hZ0TVMJna2jeEHbW6l1",
+          "read": false,
+          "createdAt": "2026-03-11T13:13:34.000Z",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "message": "Your staff account has been approved. You can now access the system."
+        }
+      },
+      {
+        "id": "69CKa5wc5AN9aV8zBnbO",
+        "data": {
+          "type": "new_registration_request",
+          "title": "New Registration Request",
+          "message": "Rishi requested staff access",
+          "requestId": "L316MUWUEaMvn5SzUOBRz3vua1T2",
+          "read": false,
+          "userId": "admin",
+          "createdAt": "2026-03-08T12:12:54.000Z"
+        }
+      },
+      {
+        "id": "HSL2n0NjKCWJTh2anmza",
+        "data": {
+          "read": false,
+          "userId": "admin",
+          "createdAt": "2026-03-10T04:20:21.000Z",
+          "type": "new_registration_request",
+          "title": "New Registration Request",
+          "message": "mann requested staff access",
+          "requestId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33"
+        }
+      },
+      {
+        "id": "KQvzuDEEPV8ilCZJPDsW",
+        "data": {
+          "message": "Your staff account has been approved. You can now access the system.",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "createdAt": "2026-03-08T12:16:19.000Z",
+          "userId": "DIAVk4t4EygHblsabQmHbWJSwN23",
+          "read": false
+        }
+      },
+      {
+        "id": "L9ETU8DUQx42QUYu6HK8",
+        "data": {
+          "createdAt": "2026-03-11T13:01:31.000Z",
+          "userId": "bq9UNHodxDMxcS0Z3O8pIvyCtiP2",
+          "read": false,
+          "message": "Your staff account has been approved. You can now access the system.",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉"
+        }
+      },
+      {
+        "id": "MafUgKXZm2mIDUc9E50G",
+        "data": {
+          "createdAt": "2026-03-08T12:15:22.000Z",
+          "userId": "admin",
+          "read": false,
+          "requestId": "DIAVk4t4EygHblsabQmHbWJSwN23",
+          "message": "Jay requested staff access",
+          "type": "new_registration_request",
+          "title": "New Registration Request"
+        }
+      },
+      {
+        "id": "PwzBHeQzScB6tL6McL7p",
+        "data": {
+          "createdAt": "2026-03-10T04:22:36.000Z",
+          "read": false,
+          "userId": "admin",
+          "message": "Mann requested staff access",
+          "requestId": "j4EonWGFrxXkE19K9bi9vhenxV02",
+          "type": "new_registration_request",
+          "title": "New Registration Request"
+        }
+      },
+      {
+        "id": "YxqlqWOfXwLZzdrEj0jI",
+        "data": {
+          "createdAt": "2026-03-11T13:00:56.000Z",
+          "userId": "admin",
+          "read": false,
+          "message": "Test123 requested staff access",
+          "requestId": "bq9UNHodxDMxcS0Z3O8pIvyCtiP2",
+          "title": "New Registration Request",
+          "type": "new_registration_request"
+        }
+      },
+      {
+        "id": "Z6ehVxN2Nj47WJBCV0xZ",
+        "data": {
+          "createdAt": "2026-03-10T04:20:43.000Z",
+          "userId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+          "read": false,
+          "message": "Your staff account has been approved. You can now access the system.",
+          "title": "Account Approved! 🎉",
+          "type": "request_approved"
+        }
+      },
+      {
+        "id": "d1n3PeTkhsE43UPZS0ka",
+        "data": {
+          "createdAt": "2026-03-15T14:54:21.000Z",
+          "userId": "admin",
+          "read": false,
+          "requestId": "vH09TaRVrZSWPIiG7ZLwEcESC1h2",
+          "message": "Jayyy requested manager access",
+          "type": "new_registration_request",
+          "title": "New Registration Request"
+        }
+      },
+      {
+        "id": "fyAFhGIGHwbvvqIb1TM0",
+        "data": {
+          "title": "New Registration Request",
+          "type": "new_registration_request",
+          "requestId": "b4kloosTsxSBr7VsjVtc434Kudn2",
+          "message": "aman requested staff access",
+          "userId": "admin",
+          "read": false,
+          "createdAt": "2026-03-21T12:15:59.000Z"
+        }
+      },
+      {
+        "id": "jO6oE2Jlxwcb6JL4ZyI2",
+        "data": {
+          "message": "Your staff account has been approved. You can now access the system.",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "createdAt": "2026-03-10T07:13:52.000Z",
+          "read": false,
+          "userId": "AIjKb1QQ96d3ploPo26LpiaivDG3"
+        }
+      },
+      {
+        "id": "jwP4I6KJ3ZhDvPuz291C",
+        "data": {
+          "userId": "admin",
+          "read": false,
+          "createdAt": "2026-03-21T11:42:01.000Z",
+          "type": "new_registration_request",
+          "title": "New Registration Request",
+          "message": "pranav prajapati requested manager access",
+          "requestId": "9wSJsRl2eVYdMwtQ9uMPecFNbe93"
+        }
+      },
+      {
+        "id": "kx8vvYY7czrWrG9VwgsX",
+        "data": {
+          "userId": "vH09TaRVrZSWPIiG7ZLwEcESC1h2",
+          "read": false,
+          "createdAt": "2026-03-15T14:54:56.000Z",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "message": "Your manager account has been approved. You can now access the system."
+        }
+      },
+      {
+        "id": "oElXAH3jhuqdbhGWZx6d",
+        "data": {
+          "userId": "admin",
+          "read": false,
+          "createdAt": "2026-03-11T13:13:14.000Z",
+          "type": "new_registration_request",
+          "title": "New Registration Request",
+          "requestId": "TQXPOxFN0hZ0TVMJna2jeEHbW6l1",
+          "message": "Rishi.dev requested staff access"
+        }
+      },
+      {
+        "id": "uCSvc7GBDBaa9sHEbIkX",
+        "data": {
+          "read": false,
+          "userId": "b4kloosTsxSBr7VsjVtc434Kudn2",
+          "createdAt": "2026-03-21T12:23:53.000Z",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "message": "Your staff account has been approved. You can now access the system."
+        }
+      },
+      {
+        "id": "x8ceWunIpy5xpU6N2DNv",
+        "data": {
+          "message": "Your manager account has been approved. You can now access the system.",
+          "type": "request_approved",
+          "title": "Account Approved! 🎉",
+          "createdAt": "2026-03-21T11:47:55.000Z",
+          "userId": "9wSJsRl2eVYdMwtQ9uMPecFNbe93",
+          "read": false
+        }
+      }
+    ],
+    "activityLogs": [
+      {
+        "id": "09WvmV03NPkRaN8aba9T",
+        "data": {
+          "userName": "Rishi",
+          "action": "events_assigned",
+          "targetUserName": "Shruti",
+          "userRole": "admin",
+          "details": "Assigned 2 event(s) to Shruti",
+          "timestamp": "2026-03-09T09:10:46.000Z",
+          "targetUserId": "ArweikabH1P9d5SEiuXsr1GZtMs1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "1SWpg5ghYOijjD1UDijW",
+        "data": {
+          "details": "Assigned 1 event(s) to Sneha Reddy",
+          "timestamp": "2026-03-07T05:21:08.000Z",
+          "userName": "Admin",
+          "targetUserName": "Sneha Reddy",
+          "userRole": "admin",
+          "action": "events_assigned",
+          "targetUserId": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "2SXXOReVPJEqqaTovXlU",
+        "data": {
+          "userName": "Admin",
+          "action": "expense_deleted",
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "userRole": "admin",
+          "details": "Deleted expense: flower - ₹15,000",
+          "timestamp": "2026-03-16T12:05:18.000Z",
+          "expenseId": "YUHyBjYGbWD7Yuq6WYLm",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "2VpriTHSI9nr1DCohGze",
+        "data": {
+          "eventId": "v9TFETt1petEJBMd8s1E",
+          "action": "expense_added",
+          "details": "Added expense: flower - ₹15,000",
+          "timestamp": "2026-03-16T11:53:44.000Z",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userRole": "admin",
+          "userName": "Admin",
+          "expenseId": "YUHyBjYGbWD7Yuq6WYLm",
+          "eventName": "Tech Conference 2024"
+        }
+      },
+      {
+        "id": "2rUAHIBfCC5gp2t2njhG",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "userRole": "admin",
+          "targetUserName": "Sneha Reddy",
+          "action": "events_assigned",
+          "userName": "Admin",
+          "details": "Assigned 3 event(s) to Sneha Reddy",
+          "timestamp": "2026-03-07T05:24:26.000Z"
+        }
+      },
+      {
+        "id": "3IvRQ4nwa3nYbsw9PXy9",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "hRlRDUPlXdVyb9bx8QDfafLq18E2",
+          "details": "Deleted user: Nil",
+          "timestamp": "2026-03-22T07:51:16.000Z",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Nil",
+          "userName": "Admin"
+        }
+      },
+      {
+        "id": "5gtEFOFpniQ3q852xKxV",
+        "data": {
+          "details": "Assigned 3 event(s) to Nil",
+          "timestamp": "2026-03-10T07:22:23.000Z",
+          "targetUserName": "Nil",
+          "userRole": "admin",
+          "action": "events_assigned",
+          "userName": "Rishi",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "hRlRDUPlXdVyb9bx8QDfafLq18E2"
+        }
+      },
+      {
+        "id": "5tg0nCw2JRCY49S3dJFn",
+        "data": {
+          "userName": "Jay",
+          "userRole": "staff",
+          "eventName": "Diwali Celebration",
+          "expenseId": "WrnRkvxyAvR1PbBNW5qd",
+          "details": "Added expense: shrf - ₹7,890",
+          "timestamp": "2026-03-16T13:01:19.000Z",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "action": "expense_added",
+          "userId": "DIAVk4t4EygHblsabQmHbWJSwN23"
+        }
+      },
+      {
+        "id": "6qYFIwMga93GrG5zcOFW",
+        "data": {
+          "userName": "Rishi",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Nil",
+          "timestamp": "2026-03-09T09:25:20.000Z",
+          "details": "Assigned 2 event(s) to Nil",
+          "targetUserId": "hRlRDUPlXdVyb9bx8QDfafLq18E2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "72pzJNgvg8BmwZuVb4kS",
+        "data": {
+          "details": "Deleted user: Rishi",
+          "timestamp": "2026-03-22T07:51:47.000Z",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Rishi",
+          "userName": "Admin",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "L316MUWUEaMvn5SzUOBRz3vua1T2"
+        }
+      },
+      {
+        "id": "84KpRnUWCC1tpjOIvKHn",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "vH09TaRVrZSWPIiG7ZLwEcESC1h2",
+          "action": "request_approved",
+          "targetUserName": "Jayyy",
+          "userRole": "admin",
+          "userName": "Admin",
+          "details": "Approved manager request for Jayyy",
+          "timestamp": "2026-03-15T14:54:56.000Z"
+        }
+      },
+      {
+        "id": "A0LsbhJqhImYE6EyoTTx",
+        "data": {
+          "targetUserId": "DIAVk4t4EygHblsabQmHbWJSwN23",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 0 event(s) to Jay",
+          "timestamp": "2026-03-16T13:03:19.000Z",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "targetUserName": "Jay",
+          "userRole": "admin"
+        }
+      },
+      {
+        "id": "GFI0VMXov95Hce7TMuAS",
+        "data": {
+          "action": "request_approved",
+          "userRole": "admin",
+          "targetUserName": "Test123",
+          "userName": "Rishi",
+          "details": "Approved staff request for Test123",
+          "timestamp": "2026-03-11T13:01:30.000Z",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "bq9UNHodxDMxcS0Z3O8pIvyCtiP2"
+        }
+      },
+      {
+        "id": "Hzez0WmBTTt0oU8jMirE",
+        "data": {
+          "targetUserId": "ArweikabH1P9d5SEiuXsr1GZtMs1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 3 event(s) to Shruti",
+          "timestamp": "2026-03-10T07:21:39.000Z",
+          "userName": "Rishi",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Shruti"
+        }
+      },
+      {
+        "id": "JGoM9DEjYAxrJxbslMXi",
+        "data": {
+          "targetUserId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Rishi",
+          "userRole": "admin",
+          "targetUserName": "mann",
+          "action": "events_assigned",
+          "details": "Assigned 1 event(s) to mann",
+          "timestamp": "2026-03-10T07:21:45.000Z"
+        }
+      },
+      {
+        "id": "L3DfTx4ZUltXDdfT25Rx",
+        "data": {
+          "action": "role_changed",
+          "userRole": "admin",
+          "targetUserName": "vivek",
+          "userName": "Rishi",
+          "timestamp": "2026-03-10T07:22:04.000Z",
+          "details": "Changed vivek's role to staff",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "eA3oeMHAJdf6p5uTS8rFFohiSX92"
+        }
+      },
+      {
+        "id": "M3MlxXVAp1LgpVZJVBcF",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "eventName": "Dangi wedding",
+          "action": "event_created",
+          "userRole": "admin",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "userName": "Rishi",
+          "timestamp": "2026-03-10T07:21:03.000Z",
+          "details": "Created event: Dangi wedding with budget ₹20,00,000"
+        }
+      },
+      {
+        "id": "MHhBWoVf1zWt4DLPsGSV",
+        "data": {
+          "details": "Approved staff request for Jay",
+          "timestamp": "2026-03-08T12:16:19.000Z",
+          "targetUserName": "Jay",
+          "userRole": "manager",
+          "action": "request_approved",
+          "userName": "Pranav",
+          "userId": "iwUsvEsG2RYMGTfUxYi4tcP87lR2",
+          "targetUserId": "DIAVk4t4EygHblsabQmHbWJSwN23"
+        }
+      },
+      {
+        "id": "MroePxmkckVaLwa47I6S",
+        "data": {
+          "timestamp": "2026-03-22T07:50:55.000Z",
+          "details": "Deleted user: Jayyy",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Jayyy",
+          "userName": "Admin",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "vH09TaRVrZSWPIiG7ZLwEcESC1h2"
+        }
+      },
+      {
+        "id": "NUXV4TrMlEMPIaixhcIB",
+        "data": {
+          "timestamp": "2026-03-08T12:14:09.000Z",
+          "details": "Approved staff request for Rishi",
+          "action": "request_approved",
+          "userRole": "admin",
+          "targetUserName": "Rishi",
+          "userName": "Rishi",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "L316MUWUEaMvn5SzUOBRz3vua1T2"
+        }
+      },
+      {
+        "id": "NmGnElvOxzqYC2RyCFIk",
+        "data": {
+          "userName": "Admin",
+          "action": "request_approved",
+          "userRole": "admin",
+          "targetUserName": "aman",
+          "timestamp": "2026-03-21T12:23:53.000Z",
+          "details": "Approved staff request for aman",
+          "targetUserId": "b4kloosTsxSBr7VsjVtc434Kudn2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "NxRTA70rx6SFCXVmneee",
+        "data": {
+          "targetUserId": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Rahul Sharma",
+          "details": "Assigned 1 event(s) to Rahul Sharma",
+          "timestamp": "2026-03-07T05:20:57.000Z"
+        }
+      },
+      {
+        "id": "Of3aSGjn1aPE2XeXWI2y",
+        "data": {
+          "action": "events_assigned",
+          "targetUserName": "Rishi",
+          "userRole": "admin",
+          "userName": "Rishi",
+          "details": "Assigned 3 event(s) to Rishi",
+          "timestamp": "2026-03-10T07:21:54.000Z",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "L316MUWUEaMvn5SzUOBRz3vua1T2"
+        }
+      },
+      {
+        "id": "QhuE1NYukKc5chY1CCdT",
+        "data": {
+          "targetUserId": "9wSJsRl2eVYdMwtQ9uMPecFNbe93",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Approved manager request for pranav prajapati",
+          "timestamp": "2026-03-21T11:47:55.000Z",
+          "userName": "Admin",
+          "action": "request_approved",
+          "targetUserName": "pranav prajapati",
+          "userRole": "admin"
+        }
+      },
+      {
+        "id": "RBbXxSgWO9M7zIhO0psx",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "action": "events_assigned",
+          "targetUserName": "Amit Kumar",
+          "userRole": "admin",
+          "userName": "Admin",
+          "details": "Assigned 5 event(s) to Amit Kumar",
+          "timestamp": "2026-03-07T05:22:05.000Z"
+        }
+      },
+      {
+        "id": "RZ2ZhsjM4I73TswsiiLj",
+        "data": {
+          "action": "expense_deleted",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "userRole": "admin",
+          "userName": "Admin",
+          "details": "Deleted expense: shrf - ₹7,890",
+          "timestamp": "2026-03-21T11:45:39.000Z",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "expenseId": "WrnRkvxyAvR1PbBNW5qd"
+        }
+      },
+      {
+        "id": "S2WyY8aTXAeU4vYqHo8C",
+        "data": {
+          "timestamp": "2026-03-22T07:51:20.000Z",
+          "details": "Deleted user: vivek",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "vivek",
+          "userName": "Admin",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "eA3oeMHAJdf6p5uTS8rFFohiSX92"
+        }
+      },
+      {
+        "id": "SfGGVstK82hkRnXt9Goj",
+        "data": {
+          "details": "Deleted user: Jay",
+          "timestamp": "2026-03-22T07:52:00.000Z",
+          "action": "user_deleted",
+          "targetUserName": "Jay",
+          "userRole": "admin",
+          "userName": "Admin",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "DIAVk4t4EygHblsabQmHbWJSwN23"
+        }
+      },
+      {
+        "id": "TVfvC1hZFxBcUA053JfV",
+        "data": {
+          "userId": "eA3oeMHAJdf6p5uTS8rFFohiSX92",
+          "targetUserId": "ferLb1LNXUTV6TwNHMFbjwQUztB2",
+          "targetUserName": "vivek",
+          "userRole": "manager",
+          "action": "events_assigned",
+          "userName": "vivek",
+          "details": "Assigned 0 event(s) to vivek",
+          "timestamp": "2026-03-07T10:16:36.000Z"
+        }
+      },
+      {
+        "id": "Tw5iNSbP7eoMSchpXbPG",
+        "data": {
+          "targetUserId": "mOUZVynOTHapVhgmOYC1WmaLn2F2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 4 event(s) to Sneha Reddy",
+          "timestamp": "2026-03-07T05:24:33.000Z",
+          "userName": "Admin",
+          "userRole": "admin",
+          "targetUserName": "Sneha Reddy",
+          "action": "events_assigned"
+        }
+      },
+      {
+        "id": "U0ZjbIfweh7JLfxuyZmP",
+        "data": {
+          "userName": "Admin",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Mann",
+          "timestamp": "2026-03-22T07:51:08.000Z",
+          "details": "Deleted user: Mann",
+          "targetUserId": "j4EonWGFrxXkE19K9bi9vhenxV02",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "UfLnlWHwM8C6UvwFp3xP",
+        "data": {
+          "expenseId": "NBhIShPtLqzIm2Jyq4Mm",
+          "eventName": "Dangi wedding",
+          "userRole": "admin",
+          "userName": "Admin",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "action": "expense_added",
+          "timestamp": "2026-03-21T11:46:41.000Z",
+          "details": "Added expense: event decoration - ₹45,960"
+        }
+      },
+      {
+        "id": "ba2v6P0ZAHKo3G0qTNnN",
+        "data": {
+          "targetUserId": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 5 event(s) to Vikaram Singh",
+          "timestamp": "2026-03-07T05:22:25.000Z",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Vikaram Singh"
+        }
+      },
+      {
+        "id": "dIFMcpkpbkQhgxuEPP5o",
+        "data": {
+          "targetUserId": "ArweikabH1P9d5SEiuXsr1GZtMs1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Rishi",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Shruti",
+          "details": "Assigned 3 event(s) to Shruti",
+          "timestamp": "2026-03-10T07:21:39.000Z"
+        }
+      },
+      {
+        "id": "dXHdHBxevK1fjcSHeGIr",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "AIjKb1QQ96d3ploPo26LpiaivDG3",
+          "details": "Approved staff request for Smit real",
+          "timestamp": "2026-03-10T07:13:52.000Z",
+          "action": "request_approved",
+          "userRole": "admin",
+          "targetUserName": "Smit real",
+          "userName": "Rishi"
+        }
+      },
+      {
+        "id": "fAeIofeorlVUYvNwnVks",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "eA3oeMHAJdf6p5uTS8rFFohiSX92",
+          "details": "Assigned 1 event(s) to vivek",
+          "timestamp": "2026-03-10T07:22:07.000Z",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "vivek",
+          "userName": "Rishi"
+        }
+      },
+      {
+        "id": "fBjv70kDV6a5Qnz4tihx",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "iwUsvEsG2RYMGTfUxYi4tcP87lR2",
+          "details": "Assigned 3 event(s) to Pranav",
+          "timestamp": "2026-03-07T05:14:53.000Z",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Pranav",
+          "userName": "Admin"
+        }
+      },
+      {
+        "id": "gPNbBr10IfIcel1F2eXY",
+        "data": {
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "action": "expense_added",
+          "timestamp": "2026-03-16T13:00:39.000Z",
+          "details": "Added expense: tools for events - ₹4,500",
+          "userId": "DIAVk4t4EygHblsabQmHbWJSwN23",
+          "userName": "Jay",
+          "userRole": "staff",
+          "expenseId": "N7IjK7k3jeKDnyTrIjOL",
+          "eventName": "Diwali Celebration"
+        }
+      },
+      {
+        "id": "hYn4sLWOVx7dOUhHL7PV",
+        "data": {
+          "targetUserId": "YsWy9bRGOfS1li9DwCTTRnnbUOm1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 1 event(s) to Vikaram Singh",
+          "timestamp": "2026-03-07T05:21:27.000Z",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "targetUserName": "Vikaram Singh",
+          "userRole": "admin"
+        }
+      },
+      {
+        "id": "hZoQfUWPfRShfmkueIeI",
+        "data": {
+          "targetUserId": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 3 event(s) to Rahul Sharma",
+          "timestamp": "2026-03-07T05:22:59.000Z",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Rahul Sharma"
+        }
+      },
+      {
+        "id": "jA2u6m46WpneDkp6LN2e",
+        "data": {
+          "targetUserId": "L316MUWUEaMvn5SzUOBRz3vua1T2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Rishi",
+          "action": "role_changed",
+          "targetUserName": "Rishi",
+          "userRole": "admin",
+          "details": "Changed Rishi's role to manager",
+          "timestamp": "2026-03-09T09:08:16.000Z"
+        }
+      },
+      {
+        "id": "jSMUTjnf6dzBNuxH5dqH",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+          "details": "Approved staff request for mann",
+          "timestamp": "2026-03-10T04:20:43.000Z",
+          "userRole": "admin",
+          "targetUserName": "mann",
+          "action": "request_approved",
+          "userName": "Rishi"
+        }
+      },
+      {
+        "id": "kLPjN3szuxbr4x9Wpoul",
+        "data": {
+          "details": "Added expense: The royal bloom hotel Jaipur whole team booking - ₹80,000",
+          "timestamp": "2026-03-10T07:26:00.000Z",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "action": "expense_added",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userRole": "admin",
+          "userName": "Rishi",
+          "eventName": "Dangi wedding",
+          "expenseId": "2hy0NLVj0JjCFyS8WHF5"
+        }
+      },
+      {
+        "id": "kX5YRKB5ojDJKhtTE73p",
+        "data": {
+          "details": "Deleted user: vivek",
+          "timestamp": "2026-03-22T07:51:18.000Z",
+          "userName": "Admin",
+          "action": "user_deleted",
+          "targetUserName": "vivek",
+          "userRole": "admin",
+          "targetUserId": "ferLb1LNXUTV6TwNHMFbjwQUztB2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "l3zsPSYSVWroKael6Dex",
+        "data": {
+          "details": "Assigned 2 event(s) to Rishi",
+          "timestamp": "2026-03-09T09:25:38.000Z",
+          "userRole": "admin",
+          "targetUserName": "Rishi",
+          "action": "events_assigned",
+          "userName": "Rishi",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "L316MUWUEaMvn5SzUOBRz3vua1T2"
+        }
+      },
+      {
+        "id": "lIxpCAnHi7mzkLFzY4MT",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "TQXPOxFN0hZ0TVMJna2jeEHbW6l1",
+          "details": "Deleted user: Rishi.dev",
+          "timestamp": "2026-03-22T07:51:34.000Z",
+          "action": "user_deleted",
+          "targetUserName": "Rishi.dev",
+          "userRole": "admin",
+          "userName": "Admin"
+        }
+      },
+      {
+        "id": "lUDktI9lyhwnFsLPgblH",
+        "data": {
+          "targetUserId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "mann",
+          "timestamp": "2026-03-15T08:04:25.000Z",
+          "details": "Assigned 2 event(s) to mann"
+        }
+      },
+      {
+        "id": "lYJ5L0aJGGCBu7dyQaxt",
+        "data": {
+          "action": "expense_added",
+          "eventId": "WPjByhiMSf0rsrZdE9fH",
+          "timestamp": "2026-03-10T07:24:34.000Z",
+          "details": "Added expense: Flight from Surat to Jaipur Full team - ₹25,000",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userRole": "admin",
+          "userName": "Rishi",
+          "expenseId": "VOY8hCrrjLUM6HSr2TGu",
+          "eventName": "Dangi wedding"
+        }
+      },
+      {
+        "id": "mVGyoExMRzs6hicLk98W",
+        "data": {
+          "userName": "Admin",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Test123",
+          "timestamp": "2026-03-22T07:51:22.000Z",
+          "details": "Deleted user: Test123",
+          "targetUserId": "bq9UNHodxDMxcS0Z3O8pIvyCtiP2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "mtQlHGBTWvmnj2SI3ya3",
+        "data": {
+          "userName": "Rahul Sharma",
+          "userRole": "staff",
+          "expenseId": "E1JvN8srdI5YetwigqZU",
+          "eventName": "Product Launch Event",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "action": "expense_added",
+          "details": "Added expense: Flight from Mumbai to surat - ₹3,500",
+          "timestamp": "2026-03-07T06:18:57.000Z",
+          "userId": "hbFRZCu7SrUpO83bNJTU6QsquIi1"
+        }
+      },
+      {
+        "id": "nhXipIXoFVU8lUIB7y9Q",
+        "data": {
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Pranav",
+          "userName": "Admin",
+          "timestamp": "2026-03-07T05:14:46.000Z",
+          "details": "Assigned 2 event(s) to Pranav",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "iwUsvEsG2RYMGTfUxYi4tcP87lR2"
+        }
+      },
+      {
+        "id": "ofgowpxhmoLjCVIf1sXL",
+        "data": {
+          "details": "Assigned 1 event(s) to Amit Kumar",
+          "timestamp": "2026-03-07T05:21:19.000Z",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "targetUserName": "Amit Kumar",
+          "userRole": "admin",
+          "targetUserId": "TQAyO0HQtGN0tt9BqrlBjVZ2UPl2",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "ojpG4SwkBTYuZ3kcYgog",
+        "data": {
+          "userId": "L316MUWUEaMvn5SzUOBRz3vua1T2",
+          "targetUserId": "Q4NlrNUCQNOvpHw1fXp8mdND1dg2",
+          "action": "events_assigned",
+          "userRole": "manager",
+          "targetUserName": "shyam",
+          "userName": "Rishi",
+          "timestamp": "2026-03-09T09:27:30.000Z",
+          "details": "Assigned 2 event(s) to shyam"
+        }
+      },
+      {
+        "id": "oqWaQ7dHG7vWIeaPoWgw",
+        "data": {
+          "expenseId": "d4XaDXP2Y4mNqVk7j1Dh",
+          "eventName": "Product Launch Event",
+          "userRole": "staff",
+          "userName": "Rahul Sharma",
+          "userId": "hbFRZCu7SrUpO83bNJTU6QsquIi1",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "action": "expense_added",
+          "details": "Added expense: Hotel stay 2 nights - ₹7,000",
+          "timestamp": "2026-03-07T05:40:18.000Z"
+        }
+      },
+      {
+        "id": "pbECBNoV63QXhoAU6RWv",
+        "data": {
+          "userName": "Shruti",
+          "userRole": "staff",
+          "expenseId": "694eWZrI669Qr3Bl5zx2",
+          "eventName": "Diwali Celebration",
+          "action": "expense_added",
+          "eventId": "Dm3NtAn3xeuOVbG5k1iX",
+          "timestamp": "2026-03-09T09:19:19.000Z",
+          "details": "Added expense: Flight From Mumbai to Surat - ₹5,000",
+          "userId": "ArweikabH1P9d5SEiuXsr1GZtMs1"
+        }
+      },
+      {
+        "id": "qEWxWbHwp9wf8fuDIOUm",
+        "data": {
+          "targetUserId": "ArweikabH1P9d5SEiuXsr1GZtMs1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Admin",
+          "action": "user_deleted",
+          "targetUserName": "Shruti",
+          "userRole": "admin",
+          "details": "Deleted user: Shruti",
+          "timestamp": "2026-03-22T07:52:03.000Z"
+        }
+      },
+      {
+        "id": "rGxK8339fTLaYm2q42pg",
+        "data": {
+          "userName": "Admin",
+          "action": "events_assigned",
+          "targetUserName": "Rishi Mistry",
+          "userRole": "admin",
+          "details": "Assigned 2 event(s) to Rishi Mistry",
+          "timestamp": "2026-03-07T05:14:50.000Z",
+          "targetUserId": "lP5kQbi3DiS1tyaCTx4j9qGLjr33",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "s4SQwEvISO7KRJ3W4v4Q",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "mann",
+          "userName": "Rishi",
+          "details": "Assigned 1 event(s) to mann",
+          "timestamp": "2026-03-10T07:21:45.000Z"
+        }
+      },
+      {
+        "id": "sV31qK3427ZmBszVnjMp",
+        "data": {
+          "targetUserId": "AIjKb1QQ96d3ploPo26LpiaivDG3",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "details": "Assigned 1 event(s) to Smit real",
+          "timestamp": "2026-03-10T07:21:30.000Z",
+          "userName": "Rishi",
+          "action": "events_assigned",
+          "targetUserName": "Smit real",
+          "userRole": "admin"
+        }
+      },
+      {
+        "id": "t85Uv0VbvykVBDZF2pM8",
+        "data": {
+          "timestamp": "2026-03-22T07:51:05.000Z",
+          "details": "Deleted user: Rishi Mistry",
+          "userName": "Admin",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Rishi Mistry",
+          "targetUserId": "lP5kQbi3DiS1tyaCTx4j9qGLjr33",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "uHPXQlmmnhsm1uAzmwSb",
+        "data": {
+          "userRole": "staff",
+          "userName": "Rahul Sharma",
+          "eventName": "Product Launch Event",
+          "expenseId": "b84CVxiXN1undexrwGAe",
+          "details": "Added expense: nasta - ₹15,000",
+          "timestamp": "2026-03-07T18:01:53.000Z",
+          "eventId": "UCEK3uMRLFLBjFEL4hqr",
+          "action": "expense_added",
+          "userId": "hbFRZCu7SrUpO83bNJTU6QsquIi1"
+        }
+      },
+      {
+        "id": "uKmxwZdjSBbYOyt8L3Po",
+        "data": {
+          "targetUserId": "H9gl6xSM3fZUzhJUTaWqU5HSDD33",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Admin",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "mann",
+          "timestamp": "2026-03-22T07:51:50.000Z",
+          "details": "Deleted user: mann"
+        }
+      },
+      {
+        "id": "uiYzlMwv3MevoyRk6VMn",
+        "data": {
+          "timestamp": "2026-03-11T13:13:34.000Z",
+          "details": "Approved staff request for Rishi.dev",
+          "userName": "Rishi",
+          "action": "request_approved",
+          "userRole": "admin",
+          "targetUserName": "Rishi.dev",
+          "targetUserId": "TQXPOxFN0hZ0TVMJna2jeEHbW6l1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      },
+      {
+        "id": "vEEIWdLOfPu2fwlL2zr2",
+        "data": {
+          "targetUserId": "AIjKb1QQ96d3ploPo26LpiaivDG3",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Admin",
+          "action": "user_deleted",
+          "userRole": "admin",
+          "targetUserName": "Smit real",
+          "details": "Deleted user: Smit real",
+          "timestamp": "2026-03-22T07:52:05.000Z"
+        }
+      },
+      {
+        "id": "x6GTtKHLbITKd1M96cHk",
+        "data": {
+          "targetUserId": "lI8twz8epYXxMAkd83j30DqHaZz1",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "userName": "Admin",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Priya Patel",
+          "timestamp": "2026-03-07T05:24:00.000Z",
+          "details": "Assigned 4 event(s) to Priya Patel"
+        }
+      },
+      {
+        "id": "xhKGgV2JfzzLrOP33sY4",
+        "data": {
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "j4EonWGFrxXkE19K9bi9vhenxV02",
+          "action": "request_approved",
+          "userRole": "admin",
+          "targetUserName": "Mann",
+          "userName": "Rishi",
+          "timestamp": "2026-03-10T04:22:55.000Z",
+          "details": "Approved staff request for Mann"
+        }
+      },
+      {
+        "id": "xzA8UhXdh4wM73VSImaT",
+        "data": {
+          "details": "Assigned 1 event(s) to Jay",
+          "timestamp": "2026-03-16T12:59:26.000Z",
+          "action": "events_assigned",
+          "userRole": "admin",
+          "targetUserName": "Jay",
+          "userName": "Admin",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3",
+          "targetUserId": "DIAVk4t4EygHblsabQmHbWJSwN23"
+        }
+      },
+      {
+        "id": "zaE5dUDDujP8jdgnkUfY",
+        "data": {
+          "userName": "Admin",
+          "action": "expense_deleted",
+          "userRole": "admin",
+          "eventId": "C6CJX1oWgIJu6OXMhYwK",
+          "details": "Deleted expense: Emergency supplies - ₹2,000",
+          "timestamp": "2026-03-07T05:12:12.000Z",
+          "expenseId": "am3KWYQ2917CgDIVDXWg",
+          "userId": "Lpc7EQh2IdckwYp93KoIU0pahQJ3"
+        }
+      }
+    ]
+  }
+}
