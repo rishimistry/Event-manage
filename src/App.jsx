@@ -133,7 +133,7 @@ function StyledSelect({ value, onChange, children, style = {} }) {
 }
 
 /* ── Expense Row ─────────────────────────────────────────────────── */
-function ExpenseRow({ exp, index, onDelete }) {
+function ExpenseRow({ exp, index, onDelete, onEdit }) {
   const [open, setOpen] = useState(false);
   const cat = CATEGORIES.find(c => c.id === exp.category) || CATEGORIES[5]; // Default to misc if not found
   const pay = PAYMENT_MODES.find(p => p.id === exp.payMode) || PAYMENT_MODES[0]; // Default to cash if not found
@@ -179,9 +179,18 @@ function ExpenseRow({ exp, index, onDelete }) {
             </div>
           )}
           <div className="expense-row__btn-row">
-            <button style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", cursor: "pointer", background: "rgba(156,163,175,0.12)", color: "#9CA3AF", fontSize: 11, fontWeight: 700 }}>✏️ Edit</button>
-            <button onClick={e => { e.stopPropagation(); onDelete(exp.id); }} style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", cursor: "pointer", background: "rgba(239,68,68,0.12)", color: "#EF4444", fontSize: 11, fontWeight: 700 }}>🗑️ Delete</button>
-            <button style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", cursor: "pointer", background: "rgba(156,163,175,0.12)", color: "#9CA3AF", fontSize: 11, fontWeight: 700 }}>📤 Share</button>
+            <button 
+              onClick={e => { e.stopPropagation(); onEdit(exp); }} 
+              style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid var(--border-default)", cursor: "pointer", background: "var(--bg-elevated)", color: "var(--text-secondary)", fontSize: 11, fontWeight: 700 }}
+            >
+              ✏️ Edit
+            </button>
+            <button 
+              onClick={e => { e.stopPropagation(); onDelete(exp.id); }} 
+              style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", cursor: "pointer", background: "rgba(239,68,68,0.12)", color: "#EF4444", fontSize: 11, fontWeight: 700 }}
+            >
+              🗑️ Delete
+            </button>
           </div>
         </div>
       </div>
@@ -289,6 +298,8 @@ export default function EventXpense() {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [editingEvent, setEditingEvent] = useState(null);
   const [showEditEvent, setShowEditEvent] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [showEditExpense, setShowEditExpense] = useState(false);
 
   const toastTimer = useRef();
 
@@ -523,6 +534,63 @@ export default function EventXpense() {
     } catch (err) {
       console.error("Error adding expense:", err);
       showToast("Failed to save expense!", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditExpense = (expense) => {
+    setEditingExpense(expense);
+    setForm({
+      category: expense.category,
+      payMode: expense.payMode,
+      desc: expense.desc,
+      amount: expense.amount.toString(),
+      addedBy: expense.addedBy,
+      note: expense.note || "",
+    });
+    setShowEditExpense(true);
+  };
+
+  const handleEditExpense = async () => {
+    const parsedAmount = parseFloat(form.amount);
+    if (!form.desc.trim()) { showToast("Enter a description!", "error"); return; }
+    if (isNaN(parsedAmount) || parsedAmount <= 0) { showToast("Enter a valid amount!", "error"); return; }
+    if (!form.addedBy) { showToast("Select your name!", "error"); return; }
+
+    setSaving(true);
+    try {
+      await dbUpdateExpense(
+        editingExpense.id,
+        {
+          category: form.category,
+          payMode: form.payMode,
+          desc: form.desc.trim(),
+          amount: parsedAmount,
+          addedBy: form.addedBy,
+          note: form.note.trim(),
+        },
+        userProfile?.name || "Unknown"
+      );
+
+      // Log activity
+      await dbLogActivity({
+        action: "expense_edited",
+        userId: user.uid,
+        userName: userProfile?.name || "Unknown",
+        userRole: userProfile?.role || "staff",
+        eventId: editingExpense.eventId,
+        expenseId: editingExpense.id,
+        details: `Edited expense: ${form.desc.trim()} - ${formatINR(parsedAmount)}`,
+      });
+
+      setForm({ category: "travel", payMode: "upi", desc: "", amount: "", addedBy: "", note: "" });
+      setShowEditExpense(false);
+      setEditingExpense(null);
+      showToast("Expense updated! ✅");
+    } catch (err) {
+      console.error("Error updating expense:", err);
+      showToast("Failed to update expense!", "error");
     } finally {
       setSaving(false);
     }
@@ -825,6 +893,11 @@ export default function EventXpense() {
   const handleDelete = async (id) => {
     const expense = expenses.find(e => e.id === id);
     if (!expense) return;
+
+    // Confirmation dialog
+    if (!confirm(`Are you sure you want to delete this expense?\n\n${expense.desc} - ${formatINR(expense.amount)}`)) {
+      return;
+    }
 
     // Permission check
     if (!isAdmin && !canManageEvents) {
@@ -1391,7 +1464,7 @@ export default function EventXpense() {
                       {expandedPayment && (
                         <div style={{ marginTop: 12 }}>
                           {eventExpenses.filter(e => e.payMode === expandedPayment).map((exp, i) => (
-                            <ExpenseRow key={exp.id} exp={exp} index={i} onDelete={handleDelete} />
+                            <ExpenseRow key={exp.id} exp={exp} index={i} onDelete={handleDelete} onEdit={openEditExpense} />
                           ))}
                         </div>
                       )}
@@ -1432,7 +1505,7 @@ export default function EventXpense() {
                       {expandedCategory && (
                         <div style={{ marginTop: 12 }}>
                           {eventExpenses.filter(e => e.category === expandedCategory).map((exp, i) => (
-                            <ExpenseRow key={exp.id} exp={exp} index={i} onDelete={handleDelete} />
+                            <ExpenseRow key={exp.id} exp={exp} index={i} onDelete={handleDelete} onEdit={openEditExpense} />
                           ))}
                         </div>
                       )}
@@ -1451,7 +1524,7 @@ export default function EventXpense() {
                         <>
                           <div className="section-title" style={{ marginBottom: 12 }}>All Expenses</div>
                           {filteredExpenses.map((exp, i) => (
-                            <ExpenseRow key={exp.id} exp={exp} index={i} onDelete={handleDelete} />
+                            <ExpenseRow key={exp.id} exp={exp} index={i} onDelete={handleDelete} onEdit={openEditExpense} />
                           ))}
                         </>
                       )}
@@ -1995,20 +2068,20 @@ export default function EventXpense() {
                     return (
                       <div 
                         key={event.id} 
+                        className="bg-subtle"
                         style={{
-                          background: "rgba(255,255,255,0.04)", 
                           borderRadius: 14, 
                           padding: "18px", 
                           marginBottom: 12,
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          border: "1px solid var(--border-default)",
                           animation: `fadeSlide 0.3s ease ${idx * 0.05}s both`
                         }}
                       >
                         {/* Event Header */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{event.name}</div>
-                            <div style={{ fontSize: 12, color: "#888", display: "flex", gap: 12, flexWrap: "wrap" }}>
+                            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4, color: "var(--text-primary)" }}>{event.name}</div>
+                            <div style={{ fontSize: 12, color: "var(--text-secondary)", display: "flex", gap: 12, flexWrap: "wrap" }}>
                               <span>📍 {event.location}</span>
                               <span>📅 {event.date}</span>
                               <span>💰 Budget: {formatINR(event.budget)}</span>
@@ -2020,9 +2093,9 @@ export default function EventXpense() {
                               style={{ 
                                 padding: "6px 12px", 
                                 borderRadius: 8, 
-                                border: "none", 
-                                background: "rgba(156,163,175,0.15)", 
-                                color: "#9CA3AF", 
+                                border: "1px solid var(--border-default)", 
+                                background: "var(--bg-elevated)", 
+                                color: "var(--text-secondary)", 
                                 fontSize: 11, 
                                 fontWeight: 700, 
                                 cursor: "pointer",
@@ -2036,7 +2109,7 @@ export default function EventXpense() {
                               style={{ 
                                 padding: "6px 12px", 
                                 borderRadius: 8, 
-                                border: "none", 
+                                border: "1px solid rgba(239,68,68,0.3)", 
                                 background: "rgba(239,68,68,0.15)", 
                                 color: "#EF4444", 
                                 fontSize: 11, 
@@ -2053,10 +2126,10 @@ export default function EventXpense() {
                         {/* Budget Progress */}
                         <div style={{ marginBottom: 12 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                            <span style={{ fontSize: 11, color: "#888" }}>Spent: {formatINR(spent)}</span>
+                            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Spent: {formatINR(spent)}</span>
                             <span style={{ fontSize: 11, color: pct > 85 ? "#F59E0B" : "#22C55E", fontWeight: 700 }}>{pct.toFixed(1)}%</span>
                           </div>
-                          <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 4, height: 6 }}>
+                          <div style={{ background: "var(--bg-elevated)", borderRadius: 4, height: 6 }}>
                             <div style={{ 
                               height: 6, 
                               borderRadius: 4, 
@@ -2069,16 +2142,16 @@ export default function EventXpense() {
 
                         {/* Stats Row */}
                         <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
-                          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
-                            <div style={{ fontSize: 10, color: "#666", marginBottom: 2 }}>Expenses</div>
-                            <div style={{ fontSize: 16, fontWeight: 800, color: "#E5E7EB" }}>{eventExpenses.length}</div>
+                          <div style={{ flex: 1, background: "var(--bg-elevated)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>Expenses</div>
+                            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>{eventExpenses.length}</div>
                           </div>
-                          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
-                            <div style={{ fontSize: 10, color: "#666", marginBottom: 2 }}>Assigned Users</div>
-                            <div style={{ fontSize: 16, fontWeight: 800, color: "#9CA3AF" }}>{assignedUsers.length}</div>
+                          <div style={{ flex: 1, background: "var(--bg-elevated)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>Assigned Users</div>
+                            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>{assignedUsers.length}</div>
                           </div>
-                          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
-                            <div style={{ fontSize: 10, color: "#666", marginBottom: 2 }}>Remaining</div>
+                          <div style={{ flex: 1, background: "var(--bg-elevated)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>Remaining</div>
                             <div style={{ fontSize: 16, fontWeight: 800, color: event.budget - spent >= 0 ? "#22C55E" : "#EF4444" }}>
                               {formatINR(Math.abs(event.budget - spent))}
                             </div>
@@ -2088,7 +2161,7 @@ export default function EventXpense() {
                         {/* Assigned Users */}
                         {assignedUsers.length > 0 && (
                           <div>
-                            <div style={{ fontSize: 10, color: "#666", marginBottom: 6, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Assigned To</div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Assigned To</div>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                               {assignedUsers.map(u => (
                                 <span 
@@ -2125,20 +2198,20 @@ export default function EventXpense() {
               {/* Summary Cards */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
                 <div style={{ background: "rgba(79,70,229,0.1)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: 12, padding: 16 }}>
-                  <div style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Events</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "#E5E7EB" }}>{events.length}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Events</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-primary)" }}>{events.length}</div>
                 </div>
                 <div style={{ background: "rgba(79,70,229,0.1)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: 12, padding: 16 }}>
-                  <div style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Expenses</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "#E5E7EB" }}>{expenses.length}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Expenses</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-primary)" }}>{expenses.length}</div>
                 </div>
                 <div style={{ background: "rgba(79,70,229,0.1)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: 12, padding: 16 }}>
-                  <div style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Users</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "#E5E7EB" }}>{allUsers.length}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Users</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-primary)" }}>{allUsers.length}</div>
                 </div>
                 <div style={{ background: "rgba(79,70,229,0.1)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: 12, padding: 16 }}>
-                  <div style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Spent</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: "#E5E7EB" }}>{formatINR(expenses.reduce((s, e) => s + e.amount, 0))}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Total Spent</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: "var(--text-primary)" }}>{formatINR(expenses.reduce((s, e) => s + e.amount, 0))}</div>
                 </div>
               </div>
 
@@ -2150,18 +2223,18 @@ export default function EventXpense() {
                   const spent = eventExpenses.reduce((s, e) => s + e.amount, 0);
                   const pct = event.budget > 0 ? Math.min(100, (spent / event.budget) * 100) : 0;
                   return (
-                    <div key={event.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: 14, marginBottom: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div key={event.id} className="bg-subtle" style={{ borderRadius: 12, padding: 14, marginBottom: 8, border: "1px solid var(--border-default)" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 700 }}>{event.name}</div>
-                          <div style={{ fontSize: 10, color: "#555" }}>{event.location} · {event.date}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{event.name}</div>
+                          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{event.location} · {event.date}</div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "#E5E7EB" }}>{formatINR(spent)}</div>
-                          <div style={{ fontSize: 10, color: "#888" }}>of {formatINR(event.budget)}</div>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{formatINR(spent)}</div>
+                          <div style={{ fontSize: 10, color: "var(--text-secondary)" }}>of {formatINR(event.budget)}</div>
                         </div>
                       </div>
-                      <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 4, height: 6 }}>
+                      <div style={{ background: "var(--bg-elevated)", borderRadius: 4, height: 6 }}>
                         <div style={{ height: 6, borderRadius: 4, background: pct > 85 ? "#F59E0B" : "#22C55E", width: `${pct}%`, transition: "width 0.6s ease" }} />
                       </div>
                       <div style={{ fontSize: 10, color: pct > 85 ? "#F59E0B" : "#22C55E", marginTop: 4, fontWeight: 700 }}>{pct.toFixed(1)}% used · {eventExpenses.length} expenses</div>
@@ -2179,7 +2252,7 @@ export default function EventXpense() {
                     const color = role === "admin" ? "#EF4444" : role === "manager" ? "#4F46E5" : "#22C55E";
                     return (
                       <div key={role} style={{ background: `${color}15`, border: `1px solid ${color}33`, borderRadius: 10, padding: 12, textAlign: "center" }}>
-                        <div style={{ fontSize: 10, color: "#888", textTransform: "uppercase", fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>{role}s</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>{role}s</div>
                         <div style={{ fontSize: 24, fontWeight: 900, color }}>{count}</div>
                       </div>
                     );
@@ -2210,15 +2283,15 @@ export default function EventXpense() {
                       }) : "Unknown time";
 
                       return (
-                        <div key={log.id || idx} style={{ 
-                          background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "10px 12px", 
+                        <div key={log.id || idx} className="bg-subtle" style={{ 
+                          borderRadius: 10, padding: "10px 12px", 
                           marginBottom: 6, border: `1px solid ${color}22`, display: "flex", alignItems: "center", gap: 10,
                           animation: `fadeSlide 0.3s ease ${idx * 0.02}s both`
                         }}>
                           <div style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 600, color: "#ddd", marginBottom: 2 }}>{log.details}</div>
-                            <div style={{ fontSize: 10, color: "#555" }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>{log.details}</div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
                               {log.userName} ({log.userRole}) · {timeStr}
                             </div>
                           </div>
@@ -2274,6 +2347,78 @@ export default function EventXpense() {
           ))}
           <button onClick={handleEditEvent} disabled={saving} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "#4F46E5", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", marginTop: 4, fontFamily: "inherit", opacity: saving ? 0.6 : 1 }}>
             {saving ? "💾 Updating..." : "✅ Update Event"}
+          </button>
+        </Modal>
+      )}
+
+      {/* ── EDIT EXPENSE MODAL ── */}
+      {showEditExpense && editingExpense && (
+        <Modal title="✏️ Edit Expense" onClose={() => { setShowEditExpense(false); setEditingExpense(null); setForm({ category: "travel", payMode: "upi", desc: "", amount: "", addedBy: "", note: "" }); }}>
+          {/* Category */}
+          <div className="form-section">
+            <div className="section-title">Category</div>
+            <div className="form-grid-categories">
+              {CATEGORIES.map(cat => (
+                <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id }))} style={gridPickBtn(form.category === cat.id, cat.color)}>
+                  <div style={{ fontSize: 22 }}><Icon src={cat.icon} size={26} color={cat.color} /></div>
+                  <div style={{ fontSize: 9, color: form.category === cat.id ? cat.color : "#888", fontWeight: 700, marginTop: 3 }}>{cat.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Mode */}
+          <div className="form-section">
+            <div className="section-title">Payment Mode</div>
+            <div className="form-grid-categories">
+              {PAYMENT_MODES.map(pm => (
+                <button key={pm.id} onClick={() => setForm(f => ({ ...f, payMode: pm.id }))} style={gridPickBtn(form.payMode === pm.id, pm.color)}>
+                  <div style={{ fontSize: 20 }}><Icon src={pm.icon} size={24} color={pm.color} /></div>
+                  <div style={{ fontSize: 9, color: form.payMode === pm.id ? pm.color : "#888", fontWeight: 700, marginTop: 3, lineHeight: 1.2 }}>{pm.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Description + Amount */}
+          <div className="form-2col">
+            <div className="form-field">
+              <label className="form-label">Description *</label>
+              <input type="text" className="form-input" placeholder="e.g. Hotel stay 2 nights" value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Amount (₹) *</label>
+              <input type="number" className="form-input" placeholder="e.g. 12000" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
+            </div>
+          </div>
+
+          {/* Staff + Note */}
+          <div className="form-2col">
+            <div className="form-field">
+              <label className="form-label">Logged By *</label>
+              {userProfile?.role === "staff" ? (
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={userProfile.name} 
+                  readOnly 
+                  style={{ background: "rgba(255,255,255,0.03)", cursor: "not-allowed", color: "#888" }}
+                />
+              ) : (
+                <StyledSelect value={form.addedBy} onChange={e => setForm(f => ({ ...f, addedBy: e.target.value }))}>
+                  <option value="">— Select staff member —</option>
+                  {staffNames.map(s => <option key={s} value={s}>{s}</option>)}
+                </StyledSelect>
+              )}
+            </div>
+            <div className="form-field">
+              <label className="form-label">Note (optional)</label>
+              <input type="text" className="form-input" placeholder="e.g. Vendor bill no. 211" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+            </div>
+          </div>
+
+          <button onClick={handleEditExpense} disabled={saving} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "#4F46E5", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", marginTop: 4, fontFamily: "inherit", opacity: saving ? 0.6 : 1 }}>
+            {saving ? "💾 Updating..." : "✅ Update Expense"}
           </button>
         </Modal>
       )}
