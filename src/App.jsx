@@ -181,15 +181,15 @@ function ExpenseRow({ exp, index, onDelete, onEdit }) {
           <div className="expense-row__btn-row">
             <button 
               onClick={e => { e.stopPropagation(); onEdit(exp); }} 
-              style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid var(--border-default)", cursor: "pointer", background: "var(--bg-elevated)", color: "var(--text-secondary)", fontSize: 11, fontWeight: 700 }}
+              style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid var(--border-default)", cursor: "pointer", background: "var(--bg-elevated)", color: "var(--text-secondary)", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              ✏️ Edit
+              <Icon src="pencil.svg" size={14} /> Edit
             </button>
             <button 
               onClick={e => { e.stopPropagation(); onDelete(exp.id); }} 
-              style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", cursor: "pointer", background: "rgba(239,68,68,0.12)", color: "#EF4444", fontSize: 11, fontWeight: 700 }}
+              style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", cursor: "pointer", background: "rgba(239,68,68,0.12)", color: "#EF4444", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              🗑️ Delete
+              <Icon src="delete.svg" size={14} /> Delete
             </button>
           </div>
         </div>
@@ -2006,10 +2006,14 @@ export default function EventXpense() {
                                     cursor: saving ? "not-allowed" : "pointer", 
                                     fontFamily: "inherit", 
                                     transition: "all 0.2s",
-                                    opacity: saving ? 0.5 : 1
+                                    opacity: saving ? 0.5 : 1,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 6
                                   }}
                                 >
-                                  🗑️ Delete User
+                                  <Icon src="delete.svg" size={14} /> Delete User
                                 </button>
                               )}
                             </div>
@@ -2099,10 +2103,13 @@ export default function EventXpense() {
                                 fontSize: 11, 
                                 fontWeight: 700, 
                                 cursor: "pointer",
-                                fontFamily: "inherit"
+                                fontFamily: "inherit",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6
                               }}
                             >
-                              ✏️ Edit
+                              <Icon src="pencil.svg" size={12} /> Edit
                             </button>
                             <button 
                               onClick={() => handleDeleteEvent(event.id, event.name)}
@@ -2115,10 +2122,13 @@ export default function EventXpense() {
                                 fontSize: 11, 
                                 fontWeight: 700, 
                                 cursor: "pointer",
-                                fontFamily: "inherit"
+                                fontFamily: "inherit",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6
                               }}
                             >
-                              🗑️ Delete
+                              <Icon src="delete.svg" size={12} /> Delete
                             </button>
                           </div>
                         </div>
