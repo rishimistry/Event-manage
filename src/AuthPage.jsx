@@ -51,7 +51,7 @@ export default function AuthPage() {
 
     // ── Inline style helpers ──
     const label = {
-        fontSize: 11, fontWeight: 700, color: "#888",
+        fontSize: 11, fontWeight: 700, color: "var(--text-secondary)",
         letterSpacing: 1.5, textTransform: "uppercase",
         display: "block", marginBottom: 6,
     };
@@ -87,7 +87,7 @@ export default function AuthPage() {
                     }}>💰</div>
                     <div style={{ fontSize: 11, letterSpacing: 4, color: "#FF6B35", textTransform: "uppercase", fontWeight: 700, marginBottom: 4 }}>EventXpense</div>
                     <div style={{ fontSize: 22, fontWeight: 800, color: "#E8E8F0" }}>Team Expense Hub</div>
-                    <div style={{ fontSize: 12, color: "#555", marginTop: 6 }}>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
                         {mode === "login" ? "Welcome back! Sign in to continue." : "Create your account to get started."}
                     </div>
                 </div>
@@ -132,7 +132,7 @@ export default function AuthPage() {
                                 autoComplete={mode === "login" ? "current-password" : "new-password"} />
                             <button type="button" onClick={() => setShowPw(!showPw)} tabIndex="-1" style={{
                                 position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", marginTop: 9,
-                                background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: 16, 
+                                background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, 
                                 padding: 4, display: "flex", alignItems: "center", justifyContent: "center",
                             }}>{showPw ? "🙈" : "👁️"}</button>
                         </div>
@@ -155,7 +155,7 @@ export default function AuthPage() {
                                             <button key={r.id} type="button" onClick={() => set("role", r.id)} style={roleBtn(form.role === r.id, r.color)}>
                                                 <div style={{ fontSize: 28, marginBottom: 6 }}>{r.icon}</div>
                                                 <div style={{ fontSize: 13, fontWeight: 700, color: form.role === r.id ? r.color : "#aaa", marginBottom: 4 }}>{r.lbl}</div>
-                                                <div style={{ fontSize: 10, color: "#555", lineHeight: 1.3 }}>{r.desc}</div>
+                                                <div style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.3 }}>{r.desc}</div>
                                             </button>
                                         ))}
                                     </div>
@@ -184,7 +184,7 @@ export default function AuthPage() {
                         </button>
                     </form>
 
-                    <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "#555" }}>
+                    <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "var(--text-muted)" }}>
                         {mode === "login" ? (
                             <>Don't have an account?{" "}<span onClick={() => switchMode("register")} style={{ color: "#FF6B35", cursor: "pointer", fontWeight: 700 }}>Create one</span></>
                         ) : (

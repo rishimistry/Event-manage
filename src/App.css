@@ -54,10 +54,10 @@
   --bg-elevated: #F9FAFB;
   --border-default: #E5E7EB;
   
-  /* Text Hierarchy (inverted for light mode) */
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
+  /* Text Hierarchy (optimized for light mode) */
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
   
   /* Additional text colors for inline styles */
   --text-subtle: #9CA3AF;
@@ -1442,7 +1442,7 @@ button {
 }
 
 [data-theme="light"] .color-subtle {
-  color: #9CA3AF;
+  color: #6B7280;
 }
 
 .color-muted {
@@ -1450,7 +1450,7 @@ button {
 }
 
 [data-theme="light"] .color-muted {
-  color: #6B7280;
+  color: #9CA3AF;
 }
 
 .bg-subtle {
@@ -1480,4 +1480,27 @@ button {
 
 .header-logout-btn:hover {
   background: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ══════════════════════════════════════════════════════════════ */
+.bg-subtle {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="light"] .bg-subtle {
+  background: var(--bg-elevated);
+}
+
+.bg-hover {
+  transition: background var(--transition-fast);
+}
+
+.bg-hover:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .bg-hover:hover {
+  background: var(--bg-elevated);
 }

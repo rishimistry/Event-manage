@@ -127,7 +127,7 @@ function StyledSelect({ value, onChange, children, style = {} }) {
       }}>
         {children}
       </select>
-      <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#888", fontSize: 11 }}>▼</div>
+      <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)", fontSize: 11 }}>▼</div>
     </div>
   );
 }
@@ -152,7 +152,7 @@ function ExpenseRow({ exp, index, onDelete, onEdit }) {
           </div>
         </div>
         <div className="expense-row__actions">
-          <div style={{ fontSize: 15, fontWeight: 900, color: cat?.color }}>{formatINR(exp.amount)}</div>
+          <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>{formatINR(exp.amount)}</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }}>▼</div>
         </div>
       </div>
@@ -160,8 +160,8 @@ function ExpenseRow({ exp, index, onDelete, onEdit }) {
         <div style={{ borderTop: "1px solid var(--border-default)", padding: "12px 14px" }}>
           <div className="expense-row__detail-grid">
             {[
-              { label: "Category", value: cat?.label, icon: cat?.icon, color: cat?.color },
-              { label: "Payment", value: pay?.label, icon: pay?.icon, color: pay?.color },
+              { label: "Category", value: cat?.label, icon: cat?.icon, color: "var(--text-primary)" },
+              { label: "Payment", value: pay?.label, icon: pay?.icon, color: "var(--text-primary)" },
               { label: "Amount", value: formatINR(exp.amount), color: "var(--text-primary)" },
               { label: "Date", value: exp.date, color: "var(--text-secondary)" },
               { label: "Logged By", value: exp.addedBy, color: "var(--text-secondary)" },
@@ -213,7 +213,7 @@ function LoadingScreen({ error }) {
             borderTop: "3px solid #4F46E5", borderRadius: "50%",
             animation: "spin 1s linear infinite",
           }} />
-          <div style={{ color: "#888", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>
+          <div style={{ color: "var(--text-secondary)", fontSize: 13, fontWeight: 600, letterSpacing: 1 }}>
             Connecting to database...
           </div>
         </>
@@ -223,10 +223,10 @@ function LoadingScreen({ error }) {
           <div style={{ color: "#EF4444", fontSize: 15, fontWeight: 700 }}>
             Firebase Connection Error
           </div>
-          <div style={{ color: "#888", fontSize: 12, maxWidth: 320, textAlign: "center" }}>
+          <div style={{ color: "var(--text-secondary)", fontSize: 12, maxWidth: 320, textAlign: "center" }}>
             {error}
           </div>
-          <div style={{ color: "#555", fontSize: 11, marginTop: 8 }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 8 }}>
             Check your Firebase config in <code style={{ color: "#4F46E5" }}>src/firebase.js</code>
           </div>
         </>
@@ -243,7 +243,7 @@ function Modal({ title, onClose, children }) {
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 800 }}>{title}</div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#aaa", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} className="bg-hover" style={{ border: "none", color: "var(--text-secondary)", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>✕</button>
         </div>
         {children}
       </div>
@@ -285,7 +285,7 @@ export default function EventXpense() {
   const [showSettings, setShowSettings] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [passwordForm, setPasswordForm] = useState({ current: "", new: "", confirm: "" });
   const [profileForm, setProfileForm] = useState({ name: "" });
@@ -422,7 +422,7 @@ export default function EventXpense() {
 
   // ── Apply theme ──
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const savedTheme = localStorage.getItem('theme') || 'light';
     setDarkMode(savedTheme === 'dark');
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
@@ -1207,7 +1207,7 @@ export default function EventXpense() {
               <span className="sidebar__event-dot" style={{ background: activeEvent === ev.id ? "#4F46E5" : "#444" }} />
               <div>
                 <div style={{ fontSize: 12, fontWeight: activeEvent === ev.id ? 700 : 500 }}>{ev.name}</div>
-                <div style={{ fontSize: 10, color: "#555" }}>{ev.location} · {ev.date}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{ev.location} · {ev.date}</div>
               </div>
             </button>
           ))}
@@ -1239,7 +1239,7 @@ export default function EventXpense() {
                   borderRadius: 8, 
                   border: "1px solid rgba(255,255,255,0.15)", 
                   background: "rgba(255,255,255,0.05)", 
-                  color: "#ddd", 
+                  color: "var(--text-secondary)", 
                   fontSize: 12, 
                   fontWeight: 600, 
                   cursor: "pointer",
@@ -1290,9 +1290,9 @@ export default function EventXpense() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div className="desktop-page-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Icon src={VIEW_LABELS[view]?.icon} size={20} /> {VIEW_LABELS[view]?.label}</div>
-                <span style={{ fontSize: 12, color: "#555" }}>·</span>
-                <span style={{ fontSize: 13, color: "#888", fontWeight: 600 }}>{currentEvent.name}</span>
-                <span style={{ fontSize: 11, color: "#555" }}>{currentEvent.location}</span>
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>·</span>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>{currentEvent.name}</span>
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{currentEvent.location}</span>
                 {saving && <span style={{ fontSize: 10, color: "#4F46E5", fontWeight: 700, animation: "fadeSlide 0.3s ease" }}>💾 Saving...</span>}
               </div>
               
@@ -1385,7 +1385,7 @@ export default function EventXpense() {
                   <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>
                     {isAdmin || canManageEvents ? "No Events Yet" : "No Events Assigned"}
                   </div>
-                  <div style={{ color: "#666", marginBottom: 16 }}>
+                  <div style={{ color: "var(--text-muted)", marginBottom: 16 }}>
                     {isAdmin 
                       ? "Create your first event to start tracking expenses"
                       : "Contact your admin to get assigned to events"}
@@ -1548,7 +1548,7 @@ export default function EventXpense() {
                       ＋ Create Event
                     </button>
                   ) : (
-                    <div style={{ color: "#666" }}>Contact your admin to get assigned to events</div>
+                    <div style={{ color: "var(--text-muted)" }}>Contact your admin to get assigned to events</div>
                   )}
                 </div>
               ) : (
@@ -1608,7 +1608,7 @@ export default function EventXpense() {
                           className="form-input" 
                           value={userProfile.name} 
                           readOnly 
-                          style={{ background: "rgba(255,255,255,0.03)", cursor: "not-allowed", color: "#888" }}
+                          style={{ background: "var(--bg-elevated)", cursor: "not-allowed", color: "var(--text-muted)" }}
                         />
                       ) : (
                         /* Admin/Manager: Show dropdown to select staff */
@@ -1662,14 +1662,14 @@ export default function EventXpense() {
 
                   {/* Summary Card */}
                   <div className="report-summary-card">
-                    <div style={{ fontSize: 13, fontWeight: 800 }}>{repEvent.name}</div>
-                    <div style={{ fontSize: 11, color: "#888", marginBottom: 12 }}>{repEvent.location} · {repEvent.date}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{repEvent.name}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 12 }}>{repEvent.location} · {repEvent.date}</div>
                     <div className="report-summary__stats">
-                      <div><div style={{ fontSize: 10, color: "#888" }}>Spent</div><div style={{ fontSize: 20, fontWeight: 900, color: "#E5E7EB" }}>{formatINR(repSpent)}</div></div>
-                      <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "#888" }}>Budget</div><div style={{ fontSize: 20, fontWeight: 900, color: "#aaa" }}>{formatINR(repEvent.budget)}</div></div>
-                      <div style={{ textAlign: "right" }}><div style={{ fontSize: 10, color: "#888" }}>{repEvent.budget - repSpent >= 0 ? "Saved" : "Over"}</div><div style={{ fontSize: 20, fontWeight: 900, color: repEvent.budget - repSpent >= 0 ? "#22C55E" : "#EF4444" }}>{formatINR(Math.abs(repEvent.budget - repSpent))}</div></div>
+                      <div><div style={{ fontSize: 10, color: "var(--text-muted)" }}>Spent</div><div style={{ fontSize: 20, fontWeight: 900, color: "var(--text-primary)" }}>{formatINR(repSpent)}</div></div>
+                      <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "var(--text-muted)" }}>Budget</div><div style={{ fontSize: 20, fontWeight: 900, color: "var(--text-secondary)" }}>{formatINR(repEvent.budget)}</div></div>
+                      <div style={{ textAlign: "right" }}><div style={{ fontSize: 10, color: "var(--text-muted)" }}>{repEvent.budget - repSpent >= 0 ? "Saved" : "Over"}</div><div style={{ fontSize: 20, fontWeight: 900, color: repEvent.budget - repSpent >= 0 ? "#22C55E" : "#EF4444" }}>{formatINR(Math.abs(repEvent.budget - repSpent))}</div></div>
                     </div>
-                    <div style={{ marginTop: 10, background: "rgba(255,255,255,0.1)", borderRadius: 4, height: 5 }}>
+                    <div style={{ marginTop: 10, background: "var(--bg-elevated)", borderRadius: 4, height: 5 }}>
                       <div style={{ height: 5, borderRadius: 4, background: repPct > 85 ? "#F59E0B" : "#22C55E", width: `${repPct}%`, transition: "width 0.6s ease" }} />
                     </div>
                   </div>
@@ -1686,8 +1686,8 @@ export default function EventXpense() {
                             {repCatBreak.map(cat => (
                               <div key={cat.id} className="category-card" style={{ border: `1px solid ${cat.color}33` }}>
                                 <div style={{ fontSize: 18 }}><Icon src={cat.icon} size={20} color={cat.color} /></div>
-                                <div style={{ fontSize: 9, color: "#888", marginTop: 2 }}>{cat.label}</div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: cat.color, marginTop: 3 }}>{formatINR(cat.total)}</div>
+                                <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{cat.label}</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginTop: 3 }}>{formatINR(cat.total)}</div>
                               </div>
                             ))}
                           </div>
@@ -1702,8 +1702,8 @@ export default function EventXpense() {
                             {repPayBreak.map(pm => (
                               <div key={pm.id} className="category-card" style={{ border: `1px solid ${pm.color}33` }}>
                                 <div style={{ fontSize: 20 }}><Icon src={pm.icon} size={22} color={pm.color} /></div>
-                                <div style={{ fontSize: 9, color: "#888", marginTop: 2, fontWeight: 700 }}>{pm.label}</div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: pm.color, marginTop: 3 }}>{formatINR(pm.total)}</div>
+                                <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2, fontWeight: 700 }}>{pm.label}</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginTop: 3 }}>{formatINR(pm.total)}</div>
                               </div>
                             ))}
                           </div>
@@ -1717,10 +1717,10 @@ export default function EventXpense() {
                           {repTeam.map(({ name, total }) => (
                             <div key={name} className="report-team-row">
                               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>{name[0].toUpperCase()}</div>
+                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white" }}>{name[0].toUpperCase()}</div>
                                 <span style={{ fontSize: 13, fontWeight: 700 }}>{name}</span>
                               </div>
-                              <span style={{ fontSize: 14, fontWeight: 800, color: "#E5E7EB" }}>{formatINR(total)}</span>
+                              <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{formatINR(total)}</span>
                             </div>
                           ))}
                         </div>
@@ -1757,7 +1757,7 @@ export default function EventXpense() {
                   <div className="empty-state">
                     <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
                     <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>No Pending Requests</div>
-                    <div style={{ color: "#666" }}>All registration requests have been processed</div>
+                    <div style={{ color: "var(--text-muted)" }}>All registration requests have been processed</div>
                   </div>
                 ) : (
                   <div style={{ display: "grid", gap: 12 }}>
@@ -1792,7 +1792,7 @@ export default function EventXpense() {
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{request.name}</div>
-                              <div style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>{request.email}</div>
+                              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 }}>{request.email}</div>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                                 <div style={{ 
                                   display: "inline-block",
@@ -1806,7 +1806,7 @@ export default function EventXpense() {
                                 }}>
                                   {request.requestedRole}
                                 </div>
-                                <div style={{ fontSize: 11, color: "#555" }}>· {timeStr}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>· {timeStr}</div>
                               </div>
                             </div>
                           </div>
@@ -1894,7 +1894,7 @@ export default function EventXpense() {
                           <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{request.name}</div>
-                            <div style={{ fontSize: 11, color: "#666" }}>{request.email} · {request.requestedRole}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{request.email} · {request.requestedRole}</div>
                           </div>
                           <div style={{ 
                             padding: "4px 10px", 
@@ -1908,7 +1908,7 @@ export default function EventXpense() {
                           }}>
                             {request.status}
                           </div>
-                          <div style={{ fontSize: 10, color: "#555", flexShrink: 0 }}>{timeStr}</div>
+                          <div style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>{timeStr}</div>
                         </div>
                       );
                     })}
@@ -1951,7 +1951,7 @@ export default function EventXpense() {
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name || "Unknown"}</div>
-                            <div style={{ fontSize: 11, color: "#555" }}>{u.email}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{u.email}</div>
                           </div>
                           <span style={{ padding: "4px 10px", borderRadius: 12, background: `${roleColor}22`, color: roleColor, fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>{u.role}</span>
                         </div>
@@ -1980,7 +1980,7 @@ export default function EventXpense() {
                                 ))}
                               </div>
                             ) : (
-                              <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>No events assigned</div>
+                              <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8 }}>No events assigned</div>
                             )}
                             <div style={{ display: "flex", gap: 8 }}>
                               <button 
@@ -2022,8 +2022,8 @@ export default function EventXpense() {
                       </div>
                     );
                   })}
-                  <div style={{ marginTop: 16, padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div style={{ fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+                  <div className="bg-subtle" style={{ marginTop: 16, padding: 14, borderRadius: 12, border: "1px solid var(--border-default)" }}>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6 }}>
                       <strong style={{ color: "#EF4444" }}>Admin</strong> — Full access + user management<br />
                       <strong style={{ color: "#4F46E5" }}>Manager</strong> — Create events, manage team & expenses<br />
                       <strong style={{ color: "#22C55E" }}>Staff</strong> — Log expenses & view reports
@@ -2412,7 +2412,7 @@ export default function EventXpense() {
                   className="form-input" 
                   value={userProfile.name} 
                   readOnly 
-                  style={{ background: "rgba(255,255,255,0.03)", cursor: "not-allowed", color: "#888" }}
+                  style={{ background: "rgba(255,255,255,0.03)", cursor: "not-allowed", color: "var(--text-secondary)" }}
                 />
               ) : (
                 <StyledSelect value={form.addedBy} onChange={e => setForm(f => ({ ...f, addedBy: e.target.value }))}>
@@ -2458,7 +2458,7 @@ export default function EventXpense() {
       {showAssignModal && assigningUser && (
         <Modal title={`📋 Assign Events to ${assigningUser.name}`} onClose={() => { setShowAssignModal(false); setAssigningUser(null); setSelectedEvents([]); }}>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, color: "#888", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
               Select which events {assigningUser.name} can access. {isAdmin ? "As admin, you can assign any event." : "As manager, you can assign your events."}
             </div>
             
@@ -2506,7 +2506,7 @@ export default function EventXpense() {
                         <div style={{ fontSize: 13, fontWeight: 700, color: isSelected ? "#4F46E5" : "#ddd" }}>
                           {event.name}
                         </div>
-                        <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
                           {event.location} · {event.date} · Budget: {formatINR(event.budget)}
                         </div>
                       </div>
@@ -2520,7 +2520,7 @@ export default function EventXpense() {
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
             <button 
               onClick={() => { setShowAssignModal(false); setAssigningUser(null); setSelectedEvents([]); }}
-              style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#aaa", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+              style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
             >
               Cancel
             </button>
@@ -2540,15 +2540,15 @@ export default function EventXpense() {
         <Modal title="⚙️ Settings" onClose={() => setShowSettings(false)}>
           <div style={{ marginBottom: 16 }}>
             {/* Profile Section */}
-            <div style={{ marginBottom: 20, padding: "16px", background: "rgba(255,255,255,0.04)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="bg-subtle" style={{ marginBottom: 20, padding: "16px", borderRadius: 12, border: "1px solid var(--border-default)" }}>
               <div className="section-title" style={{ marginBottom: 10 }}>Profile Information</div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800 }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "white" }}>
                   {userProfile?.name?.[0]?.toUpperCase() || "U"}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.name || "User"}</div>
-                  <div style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.email || ""}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>{userProfile?.name || "User"}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile?.email || ""}</div>
                   <div style={{ 
                     display: "inline-block",
                     marginTop: 4,
@@ -2571,10 +2571,10 @@ export default function EventXpense() {
             <div style={{ marginBottom: 20 }}>
               <div className="section-title" style={{ marginBottom: 10 }}>App Preferences</div>
               
-              <div style={{ padding: "12px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div className="bg-subtle" style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border-default)", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🌙 Dark Mode</div>
-                  <div style={{ fontSize: 10, color: "#666" }}>Switch between dark and light theme</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: "var(--text-primary)" }}>🌙 Dark Mode</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Switch between dark and light theme</div>
                 </div>
                 <div 
                   onClick={() => {
@@ -2587,10 +2587,10 @@ export default function EventXpense() {
                 </div>
               </div>
 
-              <div style={{ padding: "12px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div className="bg-subtle" style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border-default)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>🔔 Notifications</div>
-                  <div style={{ fontSize: 10, color: "#666" }}>Get updates on expenses</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: "var(--text-primary)" }}>🔔 Notifications</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Get updates on expenses</div>
                 </div>
                 <div 
                   onClick={() => {
@@ -2614,13 +2614,13 @@ export default function EventXpense() {
                   setShowChangePassword(true);
                   setPasswordForm({ current: "", new: "", confirm: "" });
                 }}
+                className="bg-subtle"
                 style={{ 
                   width: "100%", 
                   padding: "11px 14px", 
                   borderRadius: 10, 
-                  border: "1px solid rgba(255,255,255,0.1)", 
-                  background: "rgba(255,255,255,0.05)", 
-                  color: "#ddd", 
+                  border: "1px solid var(--border-default)", 
+                  color: "var(--text-primary)", 
                   fontSize: 13, 
                   fontWeight: 600, 
                   cursor: "pointer", 
@@ -2632,8 +2632,6 @@ export default function EventXpense() {
                   gap: 10,
                   transition: "all 0.2s"
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
               >
                 <span style={{ fontSize: 16 }}>🔐</span>
                 <span>Change Password</span>
@@ -2645,13 +2643,13 @@ export default function EventXpense() {
                   setShowEditProfile(true);
                   setProfileForm({ name: userProfile?.name || "" });
                 }}
+                className="bg-subtle"
                 style={{ 
                   width: "100%", 
                   padding: "11px 14px", 
                   borderRadius: 10, 
-                  border: "1px solid rgba(255,255,255,0.1)", 
-                  background: "rgba(255,255,255,0.05)", 
-                  color: "#ddd", 
+                  border: "1px solid var(--border-default)", 
+                  color: "var(--text-primary)", 
                   fontSize: 13, 
                   fontWeight: 600, 
                   cursor: "pointer", 
@@ -2663,8 +2661,6 @@ export default function EventXpense() {
                   gap: 10,
                   transition: "all 0.2s"
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
               >
                 <span style={{ fontSize: 16 }}>✏️</span>
                 <span>Edit Profile</span>
@@ -2704,7 +2700,7 @@ export default function EventXpense() {
             {isAdmin && (
               <div style={{ marginTop: 20, padding: 14, background: "rgba(239,68,68,0.08)", borderRadius: 12, border: "1px solid rgba(239,68,68,0.2)" }}>
                 <div className="section-title" style={{ marginBottom: 8, color: "#EF4444" }}>⚠️ Danger Zone</div>
-                <div style={{ fontSize: 10, color: "#999", marginBottom: 10, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10, color: "var(--text-secondary)", marginBottom: 10, lineHeight: 1.5 }}>
                   These actions are irreversible. Use with extreme caution.
                 </div>
                 
@@ -2739,9 +2735,9 @@ export default function EventXpense() {
             )}
           </div>
 
-          <div style={{ padding: "12px", background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>EventXpense v2.2</div>
-            <div style={{ fontSize: 10, color: "#555" }}>Team Expense Management System</div>
+          <div className="bg-subtle" style={{ padding: "12px", borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginBottom: 4 }}>EventXpense v2.2</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Team Expense Management System</div>
           </div>
         </Modal>
       )}
@@ -2757,7 +2753,6 @@ export default function EventXpense() {
               placeholder="Enter current password" 
               value={passwordForm.current} 
               onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))} 
-              style={{ colorScheme: "dark" }}
             />
           </div>
           <div className="form-field">
@@ -2768,7 +2763,6 @@ export default function EventXpense() {
               placeholder="At least 6 characters" 
               value={passwordForm.new} 
               onChange={e => setPasswordForm(f => ({ ...f, new: e.target.value }))} 
-              style={{ colorScheme: "dark" }}
             />
           </div>
           <div className="form-field">
@@ -2779,7 +2773,6 @@ export default function EventXpense() {
               placeholder="Re-enter new password" 
               value={passwordForm.confirm} 
               onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} 
-              style={{ colorScheme: "dark" }}
             />
           </div>
           <button 
@@ -2819,9 +2812,9 @@ export default function EventXpense() {
               autoFocus
             />
           </div>
-          <div style={{ marginBottom: 16, padding: 12, background: "rgba(79,70,229,0.1)", borderRadius: 10, border: "1px solid rgba(79,70,229,0.2)" }}>
+          <div className="bg-subtle" style={{ marginBottom: 16, padding: 12, borderRadius: 10, border: "1px solid var(--border-default)" }}>
             <div style={{ fontSize: 11, color: "#4F46E5", fontWeight: 700, marginBottom: 4 }}>📧 Email: {userProfile?.email}</div>
-            <div style={{ fontSize: 10, color: "#888" }}>Email cannot be changed</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Email cannot be changed</div>
           </div>
           <button 
             onClick={handleUpdateProfile} 
